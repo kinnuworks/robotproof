@@ -1,0 +1,31 @@
+# Fixed test set, written before any run. One object per line: prompt | what should move (sentence sent to articulation)
+a wooden treasure chest with a hinged lid | The lid rotates open upward on its back hinge
+a two-drawer wooden nightstand with round knobs | Each drawer slides straight out of the front
+a small jewellery box with a hinged lid | The lid rotates open upward on its back hinge
+a kitchen wall cabinet with one door | The door swings open on its left side hinge
+a microwave oven with a side-hinged door | The door swings open on its left side hinge
+a laptop computer | The screen rotates open around the hinge at the back of the keyboard
+a front-loading washing machine with a round door | The round door swings open on its left side hinge
+a filing cabinet with three drawers | Each drawer slides straight out of the front
+a toilet with a lid | The lid rotates up on the hinge at the back of the seat
+a refrigerator with two doors stacked | Each door swings open on its left side hinge
+a mailbox with a front flap | The flap rotates down open on its bottom hinge
+a desk with one drawer | The drawer slides straight out of the front
+a wardrobe with two doors | Each door swings open outward on its outer side hinge
+a pedal trash can with a lid | The lid rotates open upward on its back hinge
+a toolbox with a lid | The lid rotates open upward on its back hinge
+an oven with a front door | The door rotates down open on its bottom hinge
+a cigar box | The lid rotates open upward on its back hinge
+a dresser with four drawers | Each drawer slides straight out of the front
+a piano with a keyboard lid | The keyboard lid rotates up on its back hinge
+a pizza box | The lid rotates open upward on its back hinge
+a medicine cabinet with a mirror door | The door swings open on its left side hinge
+a suitcase lying flat | The top half rotates open on its back hinge
+a dishwasher | The door rotates down open on its bottom hinge
+a bread box with a roll-top lid | The lid rotates open upward on its back hinge
+a safe with a heavy door | The door swings open on its left side hinge
+a sewing box with a lid | The lid rotates open upward on its back hinge
+a bedside cabinet with one door | The door swings open on its left side hinge
+a mini fridge | The door swings open on its left side hinge
+a kitchen drawer unit with two drawers | Each drawer slides straight out of the front
+a music box with a lid | The lid rotates open upward on its back hinge
