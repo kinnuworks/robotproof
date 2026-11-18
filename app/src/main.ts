@@ -113,12 +113,21 @@ function resize() {
   const r = { width: canvas.clientWidth, height: canvas.clientHeight };
   renderer.setSize(r.width, r.height, false);
   camera.aspect = r.width / Math.max(1, r.height);
-  // On wide stages the headline sits top-left, so shift the object to the right of it.
-  const shift = r.width > 760 ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stage-shift') || '0') : 0;
-  if (shift) camera.setViewOffset(r.width, r.height, -r.width * shift, -r.height * shift * 0.3, r.width, r.height);
-  // narrower stages: the text spans the width, so drop the object below it instead
-  else if (r.width > 0 && r.height > 0) camera.setViewOffset(r.width, r.height, 0, -r.height * 0.2, r.width, r.height);
-  else camera.clearViewOffset();
+  // Put the object in the stage's free space, clear of the headline and paragraph: to the right of the
+  // text when there's room, otherwise below it (zooming out a little if that space is short).
+  const c = canvas.getBoundingClientRect();
+  const i = document.querySelector('.intro')?.getBoundingClientRect();
+  camera.zoom = 1;
+  if (!i || r.width === 0 || r.height === 0) camera.clearViewOffset();
+  else {
+    // only the part of the stage that's on screen on first load counts
+    const bottom = Math.min(c.bottom, c.top + Math.max(240, innerHeight - c.top));
+    const rightFree = c.right - i.right, below = bottom - i.bottom;
+    let cx = r.width / 2, cy = r.height / 2;
+    if (rightFree > 0.42 * r.width) { cx = i.right - c.left + rightFree / 2; cy = r.height * 0.55; }
+    else if (below > 0) { cy = i.bottom - c.top + below / 2; camera.zoom = Math.max(0.5, Math.min(1, below / (0.62 * r.height))); }
+    camera.setViewOffset(r.width, r.height, r.width / 2 - cx, r.height / 2 - cy, r.width, r.height);
+  }
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
@@ -183,6 +192,7 @@ async function show(entry: Entry) {
   $('#stamp').hidden = true;
   $('#hint').classList.remove('gone');
   if (entry.key !== 'shared') history.replaceState(null, '', `?object=${encodeURIComponent(entry.key)}`);
+  resize();
   (window as any).__robotproof = { world, camera, canvas, robot, demos, pause: (v: boolean) => { paused = v; }, ready: true, id: entry.key };
 }
 
