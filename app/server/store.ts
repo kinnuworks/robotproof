@@ -1,5 +1,5 @@
 // Vercel Blob helpers. Everything is written once (never overwritten), so CDN caching can't serve stale state.
-import { put, head, list } from '@vercel/blob';
+import { put, head, list, del } from '@vercel/blob';
 import { createHash } from 'node:crypto';
 
 export async function exists(pathname: string): Promise<string | null> {
@@ -43,7 +43,23 @@ export async function checkCap(ip: string, perVisitor: number, perDay: number) {
   return { ok: true as const };
 }
 
-export async function countOne(ip: string) {
+/** Reserve one object for this visitor before any paid call, then re-check the caps with the reservation
+ * counted, so parallel requests can't all slip under the limit. Returns a release function for failures. */
+export async function reserveOne(ip: string, perVisitor: number, perDay: number) {
   const day = new Date().toISOString().slice(0, 10);
-  await putOnce(`limits/${day}/${hashIp(ip)}-${Date.now()}`, '1', 'text/plain');
+  const key = `limits/${day}/${hashIp(ip)}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const url = await putOnce(key, '1', 'text/plain');
+  const release = async () => { try { await del(url); } catch { /* already gone */ } };
+  const all = await listAll(`limits/${day}/`);
+  const mine = all.filter((b) => b.pathname.startsWith(`limits/${day}/${hashIp(ip)}-`)).length;
+  if (all.length > perDay || mine > perVisitor) {
+    await release();
+    return { ok: false as const, release };
+  }
+  return { ok: true as const, release };
+}
+
+/** Labels are shown to every visitor: keep them plain text. */
+export function plainLabel(s: string) {
+  return s.replace(/[<>&"'`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
 }

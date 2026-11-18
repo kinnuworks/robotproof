@@ -12,6 +12,9 @@ export interface RobotResult { attempts: Attempt[]; opened: string[]; stumped: s
  * point went, sampled while they dragged. No joint data: the same thing a camera on the person would see. */
 export interface Demo { part: string; local: THREE.Vector3; path: THREE.Vector3[]; t: number[]; joint: number[] }
 
+/** The copying hand's stiffness, N/m (the default robot hand is 400). Force is still capped at 60 N. */
+const STIFF = 1500;
+
 /** Deterministic pseudo-random numbers so a run can be repeated exactly. */
 export function rng(seed: number) {
   let s = seed >>> 0;
@@ -79,7 +82,7 @@ export interface RobotOptions {
   onStep?: (hand: THREE.Vector3, grip: THREE.Vector3, part: Part, strategy: string) => void;
   /** Wait between steps (ms); 0 runs as fast as possible (tests). */
   frameDelay?: number;
-  /** Hand damping: the default (20) or critical, as in imitate (an evidence baseline). */
+  /** Hand: the default (400 N/m, damping 20) or the stiff, critically damped hand imitate uses (an evidence baseline). */
   damping?: 'default' | 'critical';
 }
 
@@ -123,8 +126,10 @@ export class Robot {
           const hand = grip0.clone().addScaledVector(dir, reach * Math.min(1, t * 1.2));
           const p = part.mesh.localToWorld(local.clone());
           const v = part.body.linvel();
-          const c = opts.damping === 'critical' ? 2 * Math.sqrt(400 * part.mass) : 20;
-          const f = hand.clone().sub(p).multiplyScalar(400).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(c));
+          const crit = opts.damping === 'critical';
+          const kk = crit ? STIFF : 400;
+          const c = crit ? 2 * Math.sqrt(STIFF * part.mass) : 20;
+          const f = hand.clone().sub(p).multiplyScalar(kk).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(c));
           if (f.length() > strength) f.setLength(strength);
           for (const q of o.parts) q.body.resetForces(true);
           part.body.addForceAtPoint({ x: f.x, y: f.y, z: f.z }, { x: p.x, y: p.y, z: p.z }, true);
@@ -169,7 +174,8 @@ export class Robot {
       let far = 0;
       for (const q of demo.path) {
         const d = q.distanceTo(start);
-        if (d > far + 0.005) { far = d; keys.push(q); }
+        // skip jumps (a slow frame can snap a part open in one step: a straight chord no part can follow)
+        if (d > far + 0.005 && q.distanceTo(keys[keys.length - 1]) < 0.08) { far = d; keys.push(q); }
       }
       const path = keys;
       // Follow your path at a steady hand speed (at most 0.4 m/s), and only while the gripped point keeps
@@ -184,7 +190,7 @@ export class Robot {
         return path[i - 1].clone().lerp(path[i], Math.min(1, Math.max(0, (d - cum[i - 1]) / span)));
       };
       const ds = 0.4 * this.world.physics.timestep;
-      const damp = 2 * Math.sqrt(400 * part.mass);
+      const damp = 2 * Math.sqrt(STIFF * part.mass);
       let d = 0, settle = 0, stuck = 0;
       // stop when the end is held for a second, or when the part hasn't followed for 1.5 s (a stop, or stuck)
       for (let s = 0; s < 1200 && settle < 60 && stuck < 90; s++) {
@@ -193,8 +199,8 @@ export class Robot {
         if (p.distanceTo(hand) < 0.04) { d = Math.min(total, d + ds); stuck = 0; } else stuck++;
         if (d >= total) settle++;
         const v = part.body.linvel();
-        // critically damped hand (no swing past the target); same 60 N cap as every other try
-        const force = hand.clone().sub(p).multiplyScalar(400).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(damp));
+        // stiff, critically damped hand (no swing past the target, ~1 cm sag holding a lid); same 60 N cap
+        const force = hand.clone().sub(p).multiplyScalar(STIFF).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(damp));
         if (force.length() > strength) force.setLength(strength);
         for (const q of o.parts) q.body.resetForces(true);
         part.body.addForceAtPoint({ x: force.x, y: force.y, z: force.z }, { x: p.x, y: p.y, z: p.z }, true);

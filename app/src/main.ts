@@ -125,7 +125,7 @@ function renderGym() {
   const made = entries.filter((e) => e.id);
   const el = $('#gym');
   el.innerHTML = made.length
-    ? made.slice(0, 12).map((e) => `<li><a href="?base=${encodeURIComponent(e.base)}" data-key="${e.key}">${e.label}</a> <small>${e.tries ? `stumped the robot ${e.stumped ?? 0} of ${e.tries} tries` : 'not tried yet'}</small></li>`).join('')
+    ? made.slice(0, 12).map((e) => `<li><a href="?base=${encodeURIComponent(e.base)}" data-key="${esc(e.key)}">${esc(e.label)}</a> <small>${e.tries ? `stumped the robot ${e.stumped ?? 0} of ${e.tries} tries` : 'not tried yet'}</small></li>`).join('')
     : '<li><small>Nothing yet. Make the first one below.</small></li>';
   el.querySelectorAll<HTMLAnchorElement>('a[data-key]').forEach((a) => a.addEventListener('click', (ev) => {
     ev.preventDefault();
@@ -139,7 +139,7 @@ function renderPicker() {
   const made = entries.filter((e) => e.id);
   pick.innerHTML =
     `<optgroup label="Examples">${BUILT_IN.map((e) => `<option value="${e.key}">${e.label}</option>`).join('')}</optgroup>` +
-    (made.length ? `<optgroup label="Made by visitors">${made.map((e) => `<option value="${e.key}">${e.label}${e.stumped ? ` · stumped the robot ${e.stumped}×` : ''}</option>`).join('')}</optgroup>` : '');
+    (made.length ? `<optgroup label="Made by visitors">${made.map((e) => `<option value="${esc(e.key)}">${esc(e.label)}${e.stumped ? ` · stumped the robot ${e.stumped}×` : ''}</option>`).join('')}</optgroup>` : '');
   if (current) pick.value = current.key;
 }
 
@@ -148,7 +148,9 @@ let grabStart = 0;
 // Your drags, kept as demonstrations the robot can copy (and that ship in the download).
 const demos = new Map<string, Demo>();
 let rec: Demo | null = null;
-let recStart = 0;
+let recSim = 0;
+/** Text from visitors or from a URDF goes into HTML escaped. */
+const esc = (s: unknown) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 function jointOf(part: Part) { return world.object?.joints.find((j) => j.child === part); }
 function demoMax(d: Demo) { return d.joint.length ? Math.max(...d.joint) : 0; }
 async function show(entry: Entry) {
@@ -161,7 +163,7 @@ async function show(entry: Entry) {
   camera.position.set(r * 1.6, s.y * 0.45 + r * 1.1, r * 2.2);
   controls.update();
   $('#joints').innerHTML = obj.joints
-    .map((j, i) => `<li><span class="joint__name">${pretty(j.def.child)} <small>${j.def.type === 'prismatic' ? 'slides' : 'hinged'}</small></span><b class="joint__pct" id="p${i}">0%</b><meter id="m${i}" min="0" max="1" value="0"></meter></li>`)
+    .map((j, i) => `<li><span class="joint__name">${esc(pretty(j.def.child))} <small>${j.def.type === 'prismatic' ? 'slides' : 'hinged'}</small></span><b class="joint__pct" id="p${i}">0%</b><meter id="m${i}" min="0" max="1" value="0"></meter></li>`)
     .join('');
   statusEl.textContent = `${obj.joints.length} moving part${obj.joints.length === 1 ? '' : 's'} · about ${Math.round(s.x * 100)} × ${Math.round(s.y * 100)} × ${Math.round(s.z * 100)} cm`;
   world.scene.remove(arm);
@@ -202,7 +204,7 @@ canvas.addEventListener('pointerdown', (e) => {
   grab = { part, local, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal, hit.point), target: hit.point.clone() };
   if (!grabStart) grabStart = performance.now();
   rec = { part: part.name, local: local.clone(), path: [], t: [], joint: [] };
-  recStart = performance.now();
+  recSim = 0;
   controls.enabled = false;
   canvas.setPointerCapture(e.pointerId);
   $('#hint').classList.add('gone');
@@ -283,7 +285,7 @@ $('#robot').addEventListener('click', async () => {
   paused = false;
   arm.visible = false;
   caption.hidden = true;
-  $('#attempts').innerHTML = res.attempts.map((a) => `<li>${pretty(a.part)}: ${a.strategy}, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
+  $('#attempts').innerHTML = res.attempts.map((a) => `<li>${esc(pretty(a.part))}: ${a.strategy}, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
   const stumped = res.stumped.length > 0;
   verdict.textContent = stumped
     ? `STUMPED. The robot couldn't open the ${res.stumped.map(pretty).join(', ')}.${humanOpened ? ' You could.' : ''}`
@@ -326,7 +328,7 @@ $('#teach').addEventListener('click', async () => {
   paused = false;
   arm.visible = false;
   caption.hidden = true;
-  $('#attempts').innerHTML += res.attempts.map((a) => `<li>${pretty(a.part)}: copied you, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
+  $('#attempts').innerHTML += res.attempts.map((a) => `<li>${esc(pretty(a.part))}: copied you, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
   const learned = res.opened.length > 0 && res.stumped.length === 0;
   verdict.textContent = learned
     ? `LEARNED. After one look at how you did it, the robot opened the ${res.opened.map(pretty).join(', ')}.`
@@ -459,18 +461,19 @@ function tick(now: number) {
   const dt = Math.min(0.25, (now - last) / 1000);
   last = now;
   if (world.object && !paused) {
-    world.object.parts.forEach((p) => p.body.resetForces(true));
-    applyGrab();
-    world.step(dt);
-    if (grab && rec && grab.part.name === rec.part) {
-      const t = (performance.now() - recStart) / 1000;
-      if (!rec.t.length || t - rec.t[rec.t.length - 1] >= 1 / 30) {
+    world.step(dt, {
+      before: () => { world.object!.parts.forEach((p) => p.body.resetForces(true)); applyGrab(); },
+      after: () => {
+        // record the drag at physics rate: one sample per 1/30 s of simulated time
+        if (!grab || !rec || grab.part.name !== rec.part) return;
+        recSim += world.physics.timestep;
+        if (rec.t.length && recSim - rec.t[rec.t.length - 1] < 1 / 30 - 1e-6) return;
         const j = jointOf(grab.part);
         rec.path.push(grab.part.mesh.localToWorld(rec.local.clone()));
-        rec.t.push(+t.toFixed(3));
+        rec.t.push(+recSim.toFixed(3));
         rec.joint.push(j ? +world.openness(j).toFixed(3) : 0);
-      }
-    }
+      },
+    });
     world.object.joints.forEach((j, i) => {
       const o = world.openness(j);
       showOpenness(i, o);
@@ -498,7 +501,7 @@ function tick(now: number) {
   renderPicker();
   // ?base=<folder with robot.urdf> opens any object folder from this site or its Blob store (share links, evidence runs).
   const baseParam = new URLSearchParams(location.search).get('base');
-  if (baseParam && (/^\/[\w\-\/]+\/$/.test(baseParam) || /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/objects\/\d+\/$/.test(baseParam))) {
+  if (baseParam && (/^\/[\w\-\/]+\/$/.test(baseParam) || /^https:\/\/qhuaqity4gffgh3y\.public\.blob\.vercel-storage\.com\/objects\/\d+\/$/.test(baseParam))) {
     entries.push({ key: 'shared', label: 'Shared object', base: baseParam });
   }
   const first = (baseParam && entries.find((e) => e.key === 'shared')) || entries.find((e) => e.key === want) || BUILT_IN[0];

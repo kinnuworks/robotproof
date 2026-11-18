@@ -308,9 +308,20 @@ export class World {
     return Math.max(0, Math.min(1, this.jointValue(j) / target));
   }
 
-  step(dt: number) {
+  /** Advance by dt in fixed substeps (at most 30). Optional hooks run around every substep, so a drag
+   * force can follow the cursor and a recording can sample at physics rate even when frames are slow. */
+  step(dt: number, hooks?: { before?: () => void; after?: () => void }) {
     const n = Math.max(1, Math.round(dt / this.physics.timestep));
-    for (let i = 0; i < Math.min(n, 30); i++) this.physics.step();
+    for (let i = 0; i < Math.min(n, 30); i++) {
+      hooks?.before?.();
+      this.physics.step();
+      if (hooks) this.syncMeshes();
+      hooks?.after?.();
+    }
+    this.syncMeshes();
+  }
+
+  private syncMeshes() {
     if (!this.object) return;
     for (const p of this.object.parts) {
       const t = p.body.translation(), r = p.body.rotation();

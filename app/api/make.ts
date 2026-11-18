@@ -4,7 +4,7 @@
 // retries a little later with photoUrl (no second upload). The daily cap counts only objects that started.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { textTo3d, imageTo3d, uploadImage } from '../server/lux3d.js';
-import { checkCap, countOne } from '../server/store.js';
+import { checkCap, reserveOne, putOnce, plainLabel } from '../server/store.js';
 
 const PER_VISITOR = Number(process.env.MAX_PER_VISITOR_PER_DAY ?? 3);
 const PER_DAY = Number(process.env.MAX_OBJECTS_PER_DAY ?? 60);
@@ -23,6 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cap = await checkCap(ip, PER_VISITOR, PER_DAY);
     if (!cap.ok) return res.status(429).json({ error: cap.reason });
 
+    // Hold a place under the caps before spending anything; give it back if Lux3D doesn't start.
+    const slot = await reserveOne(ip, PER_VISITOR, PER_DAY);
+    if (!slot.ok) return res.status(429).json({ error: `The daily limit is used up. Try the gallery, or come back tomorrow.` });
+    let started = false;
+    try {
     let imgUrl: string | undefined;
     if (photoUrl) {
       if (!AHOLO_PHOTO.test(photoUrl)) return res.status(400).json({ error: 'Bad photo link' });
@@ -45,9 +50,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       throw e;
     }
-    await countOne(ip);
+    started = true;
+    const label = plainLabel(p) || 'Your photo';
+    // What should open and the label are fixed here, server-side; /api/job reads them from this file only.
+    await putOnce(`pending/${meshTask}.json`, JSON.stringify({ moves: m, label, at: new Date().toISOString() }), 'application/json');
     console.log(`make: task ${meshTask} ${imgUrl ? 'photo ' + imgUrl : 'text'}`);
-    return res.status(200).json({ meshTask, moves: m, label: p || 'Your photo', ...(imgUrl ? { photo: imgUrl } : {}) });
+    return res.status(200).json({ meshTask, moves: m, label, ...(imgUrl ? { photo: imgUrl } : {}) });
+    } finally {
+      if (!started) await slot.release();
+    }
   } catch (e: any) {
     console.error(e);
     return res.status(502).json({ error: `Lux3D couldn't start: ${e?.message ?? e}` });

@@ -57,12 +57,11 @@ The robot is not given the joint. It sees the shape of each moving part and wher
 > Rerun: `python evidence/score.py` and `python3 evidence/interval.py diff evidence/robot-vs-random.csv robot random_pull --seed 20261118` at commit 6c6e368. Limits: a scripted robot, not a trained policy; small n.
 
 
-> Claim: Shown once how to open it, the robot opens 14 of the 19 openable objects, up from 4 without help.
+> Claim: Shown once how to open it, the robot opens 15 of the 19 openable objects, up from 4 without help.
 > Evidence type: Our own break test, not real users.
-> Data: the same 19 objects, seed 20261118, n=19. The demonstration is a stand-in for a person's drag: the scripted pull along each joint, recorded at 30 Hz as the path of the part's centre; the robot gets only that path. Baselines on the same objects: the shape-only robot opens 4 of 19 (21.1%, 95% interval 8.5% to 43.3%); the shape-only robot with the same damped hand opens 1 of 19 (5.3%, 0.9% to 24.6%).
-> Result: 73.7% (95% interval 51.2% to 88.2%); +52.6 points over shape-only (95% interval +31.6 to +73.7) and +68.4 over the same hand without the demonstration (+47.4 to +89.5), paired.
-> Rerun: `python evidence/teach.py <url> evidence/teach.csv` and `python3 evidence/interval.py diff evidence/teach.csv imitate shape_only_damped --seed 20261118`, rule registered in evidence/EVAL_PLAN.md before the run (commit 4ee434f). Limits: the demonstration is scripted, not a person's; one try per part; five objects still failed (a fridge, a dresser's lower drawers, a 180° lid).
-Limits in numbers: zero real users; n=28 objects, n=19 robot trials and n=19 taught trials; the demonstrations are scripted stand-ins for a person; all generated on one day. The next real test would be the same downloads run with a published manipulation policy in MuJoCo, where opening more than 4 of 19 would change the conclusion.
+> Data: the same 19 objects, seed 20261118, n=19. The demonstration is a stand-in for a person's drag: the scripted pull along each joint, recorded at 30 Hz as the path of the part's centre; the robot gets only that path. Baselines on the same objects: the shape-only robot opens 4 of 19 (21.1%, 95% interval 8.5% to 43.3%); the shape-only robot with the same stiff, damped hand the copy uses opens 6 of 19 (31.6%, 15.4% to 54.0%).
+> Result: 78.9% (95% interval 56.7% to 91.5%); +57.9 points over shape-only (95% interval +36.8 to +78.9) and +47.4 over the same hand without the demonstration (+21.1 to +73.7), paired.
+> Rerun: `python evidence/teach.py <url> evidence/teach.csv` and `python3 evidence/interval.py diff evidence/teach.csv imitate shape_only_damped --seed 20261118`. The rule was registered in evidence/EVAL_PLAN.md before the first run (commit 4ee434f); the copying hand was changed after it, logged there with the first run's CSV. Limits: the demonstration is scripted, not a person's; one try per part; four objects still failed (a two-door fridge, a pizza box, a suitcase, a two-drawer unit).
 
 ## What doesn't work yet
 

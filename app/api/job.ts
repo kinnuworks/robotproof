@@ -4,7 +4,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getTask, articulate } from '../server/lux3d.js';
 import { packArticulation } from '../server/pack.js';
-import { exists, putOnce } from '../server/store.js';
+import { exists, putOnce, plainLabel } from '../server/store.js';
 
 export const config = { maxDuration: 300 };
 
@@ -12,8 +12,6 @@ const ID = /^\d{1,15}$/;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const mesh = String(req.query.mesh ?? '');
-  const moves = String(req.query.moves ?? '').slice(0, 240);
-  const label = String(req.query.label ?? '').slice(0, 200);
   if (!ID.test(mesh)) return res.status(400).json({ error: 'Bad task id' });
   res.setHeader('Cache-Control', 'no-store');
   try {
@@ -27,6 +25,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const t = await getTask(mesh);
       if (t.status === 4 || t.status === 6) return res.json({ stage: 'failed', error: t.error ?? 'Lux3D could not build this object. Try a clearer photo or description.' });
       if (t.status !== 3) return res.json({ stage: 'mesh' });
+      // Only objects started through /api/make (inside the caps) go on to the paid articulation step,
+      // with the sentence and label fixed there.
+      const pendingUrl = await exists(`pending/${mesh}.json`);
+      if (!pendingUrl) return res.status(404).json({ error: 'Unknown object' });
+      const pending = await (await fetch(pendingUrl)).json();
+      const moves = String(pending.moves ?? '').slice(0, 240);
+      const label = plainLabel(String(pending.label ?? ''));
       if (!moves) return res.status(400).json({ error: 'Missing the sentence about what opens' });
       const glbUrl = t.outputs.find((u) => u.endsWith('.glb')) ?? t.outputs[0];
       let artTask: string;
@@ -60,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log(`job ${mesh}: stored in ${Date.now() - t0} ms`);
     const joints = [...packed.urdf.matchAll(/<joint[^>]*type="(\w+)"/g)].map((m) => m[1]).filter((x) => x !== 'fixed');
     await putOnce(`objects/${mesh}/meta.json`, JSON.stringify({
-      id: mesh, label: art.label || label, moves: art.moves, joints, sourceGlb: art.glbUrl, at: new Date().toISOString(),
+      id: mesh, label: plainLabel(String(art.label ?? '')), moves: art.moves, joints, sourceGlb: art.glbUrl, at: new Date().toISOString(),
     }), 'application/json');
     return res.json({ stage: 'done', base, id: mesh });
   } catch (e: any) {

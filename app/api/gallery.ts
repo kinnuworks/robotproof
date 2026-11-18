@@ -1,7 +1,7 @@
 // GET  /api/gallery            -> objects people made, newest first, with robot results
 // POST /api/gallery {id, human, robot} -> records one try (write-once file per try)
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { listAll, putOnce } from '../server/store.js';
+import { listAll, putOnce, exists, hashIp } from '../server/store.js';
 
 const ID = /^\d{1,15}$/;
 
@@ -11,9 +11,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id, human, robot } = (req.body ?? {}) as { id?: string; human?: boolean; robot?: { opened?: string[]; stumped?: string[] } };
       if (!id || !ID.test(String(id))) return res.status(400).json({ error: 'Bad id' });
       const clean = (a: unknown) => (Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(0, 12).map((x) => x.slice(0, 40)) : []);
+      // Only real objects, and one recorded try per visitor per object (later tries by the same visitor aren't counted).
+      if (!(await exists(`objects/${id}/meta.json`))) return res.status(404).json({ error: 'Unknown object' });
+      const ip = String(req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? 'unknown').split(',')[0].trim();
       const rec = { human: !!human, opened: clean(robot?.opened), stumped: clean(robot?.stumped), at: new Date().toISOString() };
-      await putOnce(`results/${id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.json`, JSON.stringify(rec), 'application/json');
-      return res.json({ ok: true });
+      const key = `results/${id}/${hashIp(ip)}.json`;
+      if (await exists(key)) return res.json({ ok: true, counted: false });
+      try { await putOnce(key, JSON.stringify(rec), 'application/json'); } catch { return res.json({ ok: true, counted: false }); }
+      return res.json({ ok: true, counted: true });
     }
     res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=60');
     const metas = (await listAll('objects/')).filter((b) => b.pathname.endsWith('/meta.json'));
