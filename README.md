@@ -1,6 +1,6 @@
 # Robotproof
 
-**Make something robots can't open.** Photograph or describe anything with a lid, a door or a drawer. Aholo Lux3D builds it in 3D and works out how its parts move. You open it with your mouse, then a robot arm tries, without being told how it opens.
+**Make something robots can't open.** Photograph or describe anything with a lid, a door or a drawer. Aholo Lux3D builds it in 3D and works out how its parts move. You open it with your mouse, then a robot arm tries, without being told how it opens. When it's stumped, you can show it once and watch it copy you.
 
 It needs Lux3D because Lux3D's articulation step returns real joints (a URDF with hinge or slide axes, limits and separate part meshes), not just a mesh. Those joints drive the physics you drag, the robot's attempts and the file you download.
 
@@ -11,8 +11,9 @@ It needs Lux3D because Lux3D's articulation step returns real joints (a URDF wit
 **Try it in 30 seconds**
 1. Open the link. A wooden chest is already loaded.
 2. Drag the front of the lid upward. It swings open on its hinge.
-3. Press **Let the robot try**. It gets three attempts and doesn't know where the hinge is.
-4. Switch to the nightstand: the robot pulls both drawers out. Download either object for a robot simulator.
+3. Press **Let the robot try**. It gets three attempts and doesn't know where the hinge is. On the chest it ends STUMPED.
+4. Press **Teach it: let it copy you**. The arm follows the path your hand took and opens the lid.
+5. Switch to the nightstand: the robot pulls both drawers out. Download either object for a robot simulator.
 
 ---
 
@@ -29,6 +30,8 @@ Lux3D's own part masses are 1.0 kg placeholders. Robotproof replaces them with a
 ## How the robot decides
 
 The robot is not given the joint. It sees the shape of each moving part and where it sits on the object, picks the point that sticks out most (a knob, the lip of a lid), and tries up to three moves in the order the shape suggests: lift, pull, sweep left, sweep right or push down. Its grip is a held point with a 60 N cap, and it slips if the part won't follow. An attempt counts if the part ends up more than half open. It is a scripted set of moves on a drawn arm, not a learned policy. [app/src/robot.ts](app/src/robot.ts)
+
+**Teaching it.** While you drag, the page records where you grabbed the part (in the part's own frame) and where that point went, 30 times a second. After a STUMPED, the robot grips the same spot and follows your path, keeping only the moments where your hand got further out (a person's drag wobbles). It moves on only while the part keeps up, with the same 60 N cap and slip rule, and it still never reads the joint. Your drag also goes into the download as `demonstrations.json` (grip point, positions and open fraction over time, in the URDF's frame), the kind of record imitation-learning pipelines start from. ([app/src/robot.ts](app/src/robot.ts) `imitate`, [app/src/export.ts](app/src/export.ts))
 
 ## Check it yourself
 
@@ -53,7 +56,13 @@ The robot is not given the joint. It sees the shape of each moving part and wher
 > Result: 21.1% (95% interval 8.5% to 43.3%); difference from the baseline +5.3 points (95% interval −15.8 to +26.3), so not better than random by our own rule.
 > Rerun: `python evidence/score.py` and `python3 evidence/interval.py diff evidence/robot-vs-random.csv robot random_pull --seed 20261118` at commit 6c6e368. Limits: a scripted robot, not a trained policy; small n.
 
-Limits in numbers: zero real users; n=28 objects and n=19 robot trials; all generated on one day. The next real test would be the same downloads run with a published manipulation policy in MuJoCo, where opening more than 4 of 19 would change the conclusion.
+
+> Claim: Shown once how to open it, the robot opens 14 of the 19 openable objects, up from 4 without help.
+> Evidence type: Our own break test, not real users.
+> Data: the same 19 objects, seed 20261118, n=19. The demonstration is a stand-in for a person's drag: the scripted pull along each joint, recorded at 30 Hz as the path of the part's centre; the robot gets only that path. Baselines on the same objects: the shape-only robot opens 4 of 19 (21.1%, 95% interval 8.5% to 43.3%); the shape-only robot with the same damped hand opens 1 of 19 (5.3%, 0.9% to 24.6%).
+> Result: 73.7% (95% interval 51.2% to 88.2%); +52.6 points over shape-only (95% interval +31.6 to +73.7) and +68.4 over the same hand without the demonstration (+47.4 to +89.5), paired.
+> Rerun: `python evidence/teach.py <url> evidence/teach.csv` and `python3 evidence/interval.py diff evidence/teach.csv imitate shape_only_damped --seed 20261118`, rule registered in evidence/EVAL_PLAN.md before the run (commit 4ee434f). Limits: the demonstration is scripted, not a person's; one try per part; five objects still failed (a fridge, a dresser's lower drawers, a 180° lid).
+Limits in numbers: zero real users; n=28 objects, n=19 robot trials and n=19 taught trials; the demonstrations are scripted stand-ins for a person; all generated on one day. The next real test would be the same downloads run with a published manipulation policy in MuJoCo, where opening more than 4 of 19 would change the conclusion.
 
 ## What doesn't work yet
 

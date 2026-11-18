@@ -79,6 +79,8 @@ export interface RobotOptions {
   onStep?: (hand: THREE.Vector3, grip: THREE.Vector3, part: Part, strategy: string) => void;
   /** Wait between steps (ms); 0 runs as fast as possible (tests). */
   frameDelay?: number;
+  /** Hand damping: the default (20) or critical, as in imitate (an evidence baseline). */
+  damping?: 'default' | 'critical';
 }
 
 export class Robot {
@@ -121,7 +123,8 @@ export class Robot {
           const hand = grip0.clone().addScaledVector(dir, reach * Math.min(1, t * 1.2));
           const p = part.mesh.localToWorld(local.clone());
           const v = part.body.linvel();
-          const f = hand.clone().sub(p).multiplyScalar(400).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(20));
+          const c = opts.damping === 'critical' ? 2 * Math.sqrt(400 * part.mass) : 20;
+          const f = hand.clone().sub(p).multiplyScalar(400).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(c));
           if (f.length() > strength) f.setLength(strength);
           for (const q of o.parts) q.body.resetForces(true);
           part.body.addForceAtPoint({ x: f.x, y: f.y, z: f.z }, { x: p.x, y: p.y, z: p.z }, true);
