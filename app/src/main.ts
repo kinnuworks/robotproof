@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { World, type Part } from './world';
-import { Robot } from './robot';
+import { Robot, type Demo } from './robot';
 import { buildZip } from './export';
 import { Arm } from './arm';
 import './design/base.css';
@@ -55,6 +55,7 @@ app.innerHTML = `
               <button id="robot" type="button" class="ui-btn robot-btn">Let the robot try</button>
               <p class="verdict" id="verdict" role="status"></p>
               <ol id="attempts"></ol>
+              <button id="teach" type="button" class="ui-btn robot-btn" hidden>Teach it: let it copy you</button>
             </div>
           </li>
         </ol>
@@ -144,6 +145,12 @@ function renderPicker() {
 
 let humanOpened = false;
 let grabStart = 0;
+// Your drags, kept as demonstrations the robot can copy (and that ship in the download).
+const demos = new Map<string, Demo>();
+let rec: Demo | null = null;
+let recStart = 0;
+function jointOf(part: Part) { return world.object?.joints.find((j) => j.child === part); }
+function demoMax(d: Demo) { return d.joint.length ? Math.max(...d.joint) : 0; }
 async function show(entry: Entry) {
   statusEl.textContent = 'Loading…';
   current = entry;
@@ -163,13 +170,15 @@ async function show(entry: Entry) {
   arm.visible = false;
   world.scene.add(arm);
   humanOpened = false;
+  demos.clear();
+  $('#teach').hidden = true;
   $('#you').textContent = 'Your turn first: open it with the mouse.';
   $('#verdict').textContent = '';
   $('#attempts').innerHTML = '';
   $('#stamp').hidden = true;
   $('#hint').classList.remove('gone');
   if (entry.key !== 'shared') history.replaceState(null, '', `?object=${encodeURIComponent(entry.key)}`);
-  (window as any).__robotproof = { world, camera, canvas, robot, ready: true, id: entry.key };
+  (window as any).__robotproof = { world, camera, canvas, robot, demos, pause: (v: boolean) => { paused = v; }, ready: true, id: entry.key };
 }
 
 // Drag: a spring pulls the grabbed point toward the cursor on a camera-facing plane.
@@ -192,6 +201,8 @@ canvas.addEventListener('pointerdown', (e) => {
   const normal = camera.getWorldDirection(new THREE.Vector3()).negate();
   grab = { part, local, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal, hit.point), target: hit.point.clone() };
   if (!grabStart) grabStart = performance.now();
+  rec = { part: part.name, local: local.clone(), path: [], t: [], joint: [] };
+  recStart = performance.now();
   controls.enabled = false;
   canvas.setPointerCapture(e.pointerId);
   $('#hint').classList.add('gone');
@@ -202,7 +213,16 @@ canvas.addEventListener('pointermove', (e) => {
   ray.setFromCamera(ndc, camera);
   ray.ray.intersectPlane(grab.plane, grab.target);
 });
-const release = () => { grab = null; controls.enabled = true; };
+const release = () => {
+  if (rec && rec.path.length >= 2) {
+    const prev = demos.get(rec.part);
+    // keep the drag that opened the part furthest
+    if (!prev || demoMax(rec) >= demoMax(prev)) demos.set(rec.part, rec);
+  }
+  rec = null;
+  grab = null;
+  controls.enabled = true;
+};
 canvas.addEventListener('pointerup', release);
 canvas.addEventListener('pointercancel', release);
 
@@ -226,11 +246,12 @@ function showOpenness(i: number, o: number) {
 let robotBusy = false;
 let robotFrame = 0;
 // The signature moment: a STUMPED stamp lands on the stage when the robot gives up.
-function slapStamp(on: boolean) {
+function slapStamp(on: boolean, word = 'STUMPED') {
   const el = $('#stamp');
   el.hidden = !on;
   if (!on) return;
-  el.innerHTML = [...'STUMPED'].map((ch, i) => `<span style="--i:${i};--r:${(((i * 37) % 11) - 5) * 1.8}deg">${ch}</span>`).join('');
+  el.classList.toggle('stamp--learned', word !== 'STUMPED');
+  el.innerHTML = [...word].map((ch, i) => `<span style="--i:${i};--r:${(((i * 37) % 11) - 5) * 1.8}deg">${ch}</span>`).join('');
   el.classList.remove('stamp--in');
   void el.offsetWidth;
   el.classList.add('stamp--in');
@@ -245,6 +266,7 @@ $('#robot').addEventListener('click', async () => {
   $('#hint').classList.add('gone');
   $('#attempts').innerHTML = '';
   $('#stamp').hidden = true;
+  $('#teach').hidden = true;
   arm.visible = true;
   paused = true;
   const res = await robot.run({
@@ -268,11 +290,52 @@ $('#robot').addEventListener('click', async () => {
     : `The robot opened everything (${res.opened.length} part${res.opened.length === 1 ? '' : 's'}).`;
   verdict.classList.toggle('stumped', stumped);
   slapStamp(stumped);
+  const teachable = res.stumped.filter((n) => demos.has(n));
+  $('#teach').hidden = teachable.length === 0;
+  if (stumped && !teachable.length) verdict.textContent += ' Open it yourself, then you can teach it.';
   (window as any).__robotproof.lastRun = res;
   if (current?.id) {
     fetch('/api/gallery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: current.id, human: humanOpened, robot: res }) }).catch(() => {});
   }
   btn.disabled = false;
+  robotBusy = false;
+});
+
+// Teach: the robot copies your drag (where you grabbed and where your hand went). It still never reads the joint.
+$('#teach').addEventListener('click', async () => {
+  if (!world.object || robotBusy || !demos.size) return;
+  robotBusy = true;
+  const btn = $<HTMLButtonElement>('#teach');
+  btn.disabled = true;
+  const verdict = $('#verdict');
+  verdict.classList.remove('stumped');
+  $('#stamp').hidden = true;
+  arm.visible = true;
+  paused = true;
+  const res = await robot.imitate(demos, {
+    frameDelay: 8,
+    onStep: (h, _p, part, strategy) => {
+      arm.reach(h);
+      if (++robotFrame % 3 === 0) renderer.render(world.scene, camera);
+      verdict.textContent = `Copying how you opened the ${pretty(part.name)}…`;
+      caption.hidden = false;
+      caption.textContent = strategy === 'copying you' ? `Robot: copying your grab on the ${pretty(part.name)}` : `Robot: ${strategy}`;
+      if (robotFrame % 3 === 0) world.object?.joints.forEach((j, i) => showOpenness(i, world.openness(j)));
+    },
+  });
+  paused = false;
+  arm.visible = false;
+  caption.hidden = true;
+  $('#attempts').innerHTML += res.attempts.map((a) => `<li>${pretty(a.part)}: copied you, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
+  const learned = res.opened.length > 0 && res.stumped.length === 0;
+  verdict.textContent = learned
+    ? `LEARNED. After one look at how you did it, the robot opened the ${res.opened.map(pretty).join(', ')}.`
+    : `Still stumped. Even copying you, it couldn't open the ${res.stumped.map(pretty).join(', ')}.`;
+  verdict.classList.toggle('stumped', !learned);
+  slapStamp(true, learned ? 'LEARNED' : 'STUMPED');
+  (window as any).__robotproof.lastTeach = res;
+  btn.disabled = false;
+  btn.hidden = true;
   robotBusy = false;
 });
 
@@ -283,7 +346,7 @@ $('#download').addEventListener('click', async () => {
   btn.textContent = 'Packing…';
   try {
     const name = 'robotproof-' + current.key.replace(/[^a-z0-9-]/gi, '-');
-    const blob = await buildZip(current.base, world.object, name);
+    const blob = await buildZip(current.base, world.object, name, [...demos.values()]);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = name + '.zip';
@@ -399,6 +462,15 @@ function tick(now: number) {
     world.object.parts.forEach((p) => p.body.resetForces(true));
     applyGrab();
     world.step(dt);
+    if (grab && rec && grab.part.name === rec.part) {
+      const t = (performance.now() - recStart) / 1000;
+      if (!rec.t.length || t - rec.t[rec.t.length - 1] >= 1 / 30) {
+        const j = jointOf(grab.part);
+        rec.path.push(grab.part.mesh.localToWorld(rec.local.clone()));
+        rec.t.push(+t.toFixed(3));
+        rec.joint.push(j ? +world.openness(j).toFixed(3) : 0);
+      }
+    }
     world.object.joints.forEach((j, i) => {
       const o = world.openness(j);
       showOpenness(i, o);

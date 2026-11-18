@@ -192,7 +192,24 @@ export function mjcf(obj: LoadedObject, pieces: Record<string, number>, meshFile
 `;
 }
 
-export async function buildZip(base: string, obj: LoadedObject, name: string): Promise<Blob> {
+export interface DemoLike { part: string; local: { x: number; y: number; z: number }; path: { x: number; y: number; z: number }[]; t: number[]; joint: number[] }
+
+/** A person's drags as demonstrations: grip point in the link frame, then that point's world position and
+ * the joint's open fraction over time. Same frame and units as robot.urdf (metres, Y up). */
+export function demonstrationsJson(name: string, demos: DemoLike[]) {
+  const r = (v: number) => +v.toFixed(4);
+  return JSON.stringify({
+    object: name,
+    note: 'Recorded in Robotproof from a person dragging the part open with a mouse in browser physics (Rapier). Frame and units match robot.urdf: metres, Y up. joint_fraction is 0 closed to 1 at the joint limit.',
+    demonstrations: demos.map((d) => ({
+      link: d.part,
+      grip_in_link_frame: [r(d.local.x), r(d.local.y), r(d.local.z)],
+      samples: d.path.map((p, i) => ({ t: d.t[i], grip_world: [r(p.x), r(p.y), r(p.z)], joint_fraction: d.joint[i] })),
+    })),
+  }, null, 1);
+}
+
+export async function buildZip(base: string, obj: LoadedObject, name: string, demos: DemoLike[] = []): Promise<Blob> {
   const b = base.replace(/\/?$/, '/');
   const xml = await (await fetch(b + 'robot.urdf')).text();
   // Point the URDF at OBJ meshes (readable by MuJoCo, PyBullet, Isaac); the textured GLBs ride along.
@@ -212,5 +229,6 @@ export async function buildZip(base: string, obj: LoadedObject, name: string): P
     files[`${name}/${l.mesh}`] = new Uint8Array(await (await fetch(b + l.mesh)).arrayBuffer());
     files[`${name}/${l.mesh.replace(/\.glb$/, '.obj')}`] = strToU8(partObj(obj, l.name));
   }
+  if (demos.length) files[`${name}/demonstrations.json`] = strToU8(demonstrationsJson(name, demos));
   return new Blob([zipSync(files, { level: 0 }) as Uint8Array<ArrayBuffer>], { type: 'application/zip' });
 }

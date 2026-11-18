@@ -4,9 +4,13 @@
 import * as THREE from 'three';
 import type { World, Part } from './world';
 
-export type Strategy = 'pull' | 'lift' | 'sweep-left' | 'sweep-right' | 'push-down';
+export type Strategy = 'pull' | 'lift' | 'sweep-left' | 'sweep-right' | 'push-down' | 'copy';
 export interface Attempt { part: string; strategy: Strategy; opened: number; success: boolean }
 export interface RobotResult { attempts: Attempt[]; opened: string[]; stumped: string[] }
+
+/** A person's demonstration on one part: where they grabbed it (in the part's own frame) and where that
+ * point went, sampled while they dragged. No joint data: the same thing a camera on the person would see. */
+export interface Demo { part: string; local: THREE.Vector3; path: THREE.Vector3[]; t: number[]; joint: number[] }
 
 /** Deterministic pseudo-random numbers so a run can be repeated exactly. */
 export function rng(seed: number) {
@@ -59,6 +63,7 @@ function direction(s: Strategy, part: Part, root: Part): THREE.Vector3 {
     case 'sweep-left': return side.clone().addScaledVector(out, 0.5).normalize();
     case 'sweep-right': return side.clone().negate().addScaledVector(out, 0.5).normalize();
     case 'push-down': return new THREE.Vector3(0, -1, 0);
+    default: return out;
   }
 }
 
@@ -136,6 +141,74 @@ export class Robot {
       (ok ? opened : stumped).push(part.name);
     }
     this.reset();
+    return { attempts, opened, stumped };
+  }
+
+  /** Learning from one demonstration: for each part with a demo, the robot grips where the person gripped
+   * and moves its hand along the person's path (relative to where it started), with the same 60 N cap and
+   * the same slip rule. It still never reads the joint. One try per part. */
+  async imitate(demos: Map<string, Demo>, opts: RobotOptions = {}): Promise<RobotResult> {
+    const o = this.world.object;
+    if (!o) throw new Error('no object loaded');
+    const strength = opts.strength ?? 60;
+    const attempts: Attempt[] = [];
+    const opened: string[] = [], stumped: string[] = [];
+    for (const joint of o.joints) {
+      const part = joint.child;
+      const demo = demos.get(part.name);
+      if (!demo || demo.path.length < 2) { stumped.push(part.name); continue; }
+      this.reset();
+      const grip0 = part.mesh.localToWorld(demo.local.clone());
+      const start = demo.path[0];
+      // Keep the moments of progress: the points where your hand was further from where it started than
+      // ever before (a person's drag bounces; the robot copies the way out, not the wobble).
+      const keys: THREE.Vector3[] = [start];
+      let far = 0;
+      for (const q of demo.path) {
+        const d = q.distanceTo(start);
+        if (d > far + 0.005) { far = d; keys.push(q); }
+      }
+      const path = keys;
+      // Follow your path at a steady hand speed (at most 0.4 m/s), and only while the gripped point keeps
+      // up (within 4 cm), as a tracking controller would; then hold the end for a second.
+      const cum = [0];
+      for (let i = 1; i < path.length; i++) cum.push(cum[i - 1] + path[i].distanceTo(path[i - 1]));
+      const total = cum[cum.length - 1];
+      const at = (d: number) => {
+        let i = 1;
+        while (i < cum.length - 1 && cum[i] < d) i++;
+        const span = cum[i] - cum[i - 1] || 1;
+        return path[i - 1].clone().lerp(path[i], Math.min(1, Math.max(0, (d - cum[i - 1]) / span)));
+      };
+      const ds = 0.4 * this.world.physics.timestep;
+      const damp = 2 * Math.sqrt(400 * part.mass);
+      let d = 0, settle = 0, stuck = 0;
+      // stop when the end is held for a second, or when the part hasn't followed for 1.5 s (a stop, or stuck)
+      for (let s = 0; s < 1200 && settle < 60 && stuck < 90; s++) {
+        const hand = grip0.clone().add(at(d).sub(start));
+        const p = part.mesh.localToWorld(demo.local.clone());
+        if (p.distanceTo(hand) < 0.04) { d = Math.min(total, d + ds); stuck = 0; } else stuck++;
+        if (d >= total) settle++;
+        const v = part.body.linvel();
+        // critically damped hand (no swing past the target); same 60 N cap as every other try
+        const force = hand.clone().sub(p).multiplyScalar(400).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(damp));
+        if (force.length() > strength) force.setLength(strength);
+        for (const q of o.parts) q.body.resetForces(true);
+        part.body.addForceAtPoint({ x: force.x, y: force.y, z: force.z }, { x: p.x, y: p.y, z: p.z }, true);
+        this.world.step(this.world.physics.timestep);
+        if (hand.distanceTo(part.mesh.localToWorld(demo.local.clone())) > 0.12) {
+          opts.onStep?.(hand, p, part, 'copying you (slipped)');
+          break;
+        }
+        opts.onStep?.(hand, p, part, 'copying you');
+        if (opts.frameDelay && s % 3 === 0) await new Promise((r) => setTimeout(r, opts.frameDelay! * 3));
+      }
+      const openness = this.world.openness(joint);
+      const ok = openness >= 0.5;
+      attempts.push({ part: part.name, strategy: 'copy' as Strategy, opened: +openness.toFixed(3), success: ok });
+      (ok ? opened : stumped).push(part.name);
+    }
+    // leave the object as the robot left it, so the person sees the result
     return { attempts, opened, stumped };
   }
 }
