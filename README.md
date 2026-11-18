@@ -33,6 +33,24 @@ The robot is not given the joint. It sees the shape of each moving part and wher
 - The live app: https://robotproof.vercel.app (chest, nightstand, and anything visitors have made)
 - `./check.sh` runs the typecheck, the build, a call to the real Aholo API, a headless browser run of the demo path (drag, robot, download, with video), and loads the downloaded URDF in MuJoCo 3.3.7 and drives every joint.
 
+## Evidence
+
+> Evidence, stated plainly: no real users yet; it was built for this hackathon. Instead: our own break test on 28 everyday objects from a list written and committed before any run (commit 263b38c), against a random-pull baseline. Each one reruns from the repo.
+
+> Claim: Robotproof turns a one-line description into an object whose parts open the way the sentence says in 19 of 28 cases.
+> Evidence type: Our own break test, not real users.
+> Data: evidence/data/prompts-v1.txt lines 3–30 (CC0, our own list), generated with Lux3D on 18 Nov 2026, n=28. Baseline: none published on this input.
+> Result: 67.9% (95% interval 49.3% to 82.1%).
+> Rerun: `cd app && npx tsx ../evidence/generate.mts` then `python evidence/score.py <url> evidence/results.csv` at commit 6c6e368. Limits: one Lux3D build failed with no reason given, two came back with extra joint types, and six did not open past half (oven and dishwasher doors swing into the floor; some lids turn 180°).
+
+> Claim: The robot, never told the joint, opens 4 of the 19 openable objects.
+> Evidence type: Our own break test, not real users.
+> Data: the 19 openable objects above, seed 20261118, n=19. Baseline: a random pull at a random point with the same force and tries opens 3 of 19 (15.8%, 95% interval 5.5% to 37.6%).
+> Result: 21.1% (95% interval 8.5% to 43.3%); difference from the baseline +5.3 points (95% interval −15.8 to +26.3), so not better than random by our own rule.
+> Rerun: `python evidence/score.py` and `python3 evidence/interval.py diff evidence/robot-vs-random.csv robot random_pull --seed 20261118` at commit 6c6e368. Limits: a scripted robot, not a trained policy; small n.
+
+Limits in numbers: zero real users; n=28 objects and n=19 robot trials; all generated on one day. The next real test would be the same downloads run with a published manipulation policy in MuJoCo, where opening more than 4 of 19 would change the conclusion.
+
 ## What doesn't work yet
 
 - A new object takes about 5 to 10 minutes: Lux3D builds the model (about 2 to 5 minutes), then finds the joints (about 4 to 5 minutes).
