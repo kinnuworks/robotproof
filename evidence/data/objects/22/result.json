@@ -1,0 +1,14 @@
+{
+ "line": 22,
+ "prompt": "a suitcase lying flat",
+ "moves": "The top half rotates open on its back hinge",
+ "started": "2026-11-18T09:19:19.555Z",
+ "meshTask": "8299608",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/f209d81577d24cb78739d15d67542f09/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8299745",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:24:31.087Z"
+}

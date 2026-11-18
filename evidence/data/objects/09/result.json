@@ -1,0 +1,14 @@
+{
+ "line": 9,
+ "prompt": "a toilet with a lid",
+ "moves": "The lid rotates up on the hinge at the back of the seat",
+ "started": "2026-11-18T09:00:55.983Z",
+ "meshTask": "8297924",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/598a2344e6c24c10b3a607e20dc37b6b/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298090",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:06:16.141Z"
+}

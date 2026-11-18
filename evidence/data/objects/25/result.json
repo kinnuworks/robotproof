@@ -1,0 +1,16 @@
+{
+ "line": 25,
+ "prompt": "a safe with a heavy door",
+ "moves": "The door swings open on its left side hinge",
+ "started": "2026-11-18T09:23:48.512Z",
+ "meshTask": "8300024",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/acd47e72f84f4f61a6594b51317507d6/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8300246",
+ "joints": [
+  "revolute",
+  "continuous",
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:29:42.078Z"
+}

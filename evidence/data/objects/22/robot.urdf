@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="base">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/base.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="top_half">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/top_half.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="top_half_joint" type="revolute">
+    <parent link="base" />
+    <child link="top_half" />
+    <origin rpy="0 0 0" xyz="-0.30033600 0.19602157 -0.14552200" />
+    <axis xyz="-0.99992100 0.01257400 0.00083600" />
+    <limit lower="0.000000" upper="3.140000" effort="10" velocity="1" />
+  </joint>
+</robot>

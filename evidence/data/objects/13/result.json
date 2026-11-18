@@ -1,0 +1,15 @@
+{
+ "line": 13,
+ "prompt": "a wardrobe with two doors",
+ "moves": "Each door swings open outward on its outer side hinge",
+ "started": "2026-11-18T09:06:26.922Z",
+ "meshTask": "8298374",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/a1dc731de50e48089e1750f85cdef58b/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298535",
+ "joints": [
+  "revolute",
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:11:51.747Z"
+}

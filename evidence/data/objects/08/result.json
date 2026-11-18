@@ -1,0 +1,16 @@
+{
+ "line": 8,
+ "prompt": "a filing cabinet with three drawers",
+ "moves": "Each drawer slides straight out of the front",
+ "started": "2026-11-18T09:00:55.872Z",
+ "meshTask": "8297922",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/3d4349266c02447f89b44380623e5a53/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298102",
+ "joints": [
+  "prismatic",
+  "prismatic",
+  "prismatic"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:05:48.156Z"
+}

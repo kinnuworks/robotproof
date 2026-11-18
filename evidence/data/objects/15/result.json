@@ -1,0 +1,14 @@
+{
+ "line": 15,
+ "prompt": "a toolbox with a lid",
+ "moves": "The lid rotates open upward on its back hinge",
+ "started": "2026-11-18T09:10:48.563Z",
+ "meshTask": "8298657",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/3f751cf96eb24cc39c23dc27b2c81c30/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298864",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:16:09.760Z"
+}

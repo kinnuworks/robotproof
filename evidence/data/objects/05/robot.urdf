@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="body">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/body.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="microwave_door">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/microwave_door.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="microwave_door_joint" type="revolute">
+    <parent link="body" />
+    <child link="microwave_door" />
+    <origin rpy="0 0 0" xyz="-0.24657800 0.13574041 0.13323800" />
+    <axis xyz="-0.00224500 0.99972100 0.02350000" />
+    <limit lower="-1.570796" upper="0.000000" effort="10" velocity="1" />
+  </joint>
+</robot>

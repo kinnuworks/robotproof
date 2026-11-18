@@ -1,0 +1,14 @@
+{
+ "line": 26,
+ "prompt": "a sewing box with a lid",
+ "moves": "The lid rotates open upward on its back hinge",
+ "started": "2026-11-18T09:24:31.088Z",
+ "meshTask": "8300108",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/7fe7d44f121b412ea5a2dc48435b5348/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8300382",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:30:13.928Z"
+}

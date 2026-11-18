@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="base">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/base.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="door">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/door.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="dial">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/dial.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="handle">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/handle.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="door_joint" type="revolute">
+    <parent link="base" />
+    <child link="door" />
+    <origin rpy="0 0 0" xyz="0.24158700 0.35916300 0.18688100" />
+    <axis xyz="0.00216300 0.99999600 0.00155800" />
+    <limit lower="0.000000" upper="1.570796" effort="10" velocity="1" />
+  </joint>
+  <joint name="dial_joint" type="continuous">
+    <parent link="door" />
+    <child link="dial" />
+    <origin rpy="0 0 0" xyz="-0.22536700 0.17449100 -0.00685100" />
+    <axis xyz="-0.03369900 0.00007600 0.99943200" />
+  </joint>
+  <joint name="handle_joint" type="revolute">
+    <parent link="door" />
+    <child link="handle" />
+    <origin rpy="0 0 0" xyz="-0.21835300 0.01594600 -0.00532400" />
+    <axis xyz="0.01465800 -0.02608500 0.99955200" />
+    <limit lower="0.000000" upper="1.570796" effort="10" velocity="1" />
+  </joint>
+</robot>

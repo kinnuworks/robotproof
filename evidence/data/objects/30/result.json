@@ -1,0 +1,14 @@
+{
+ "line": 30,
+ "prompt": "a music box with a lid",
+ "moves": "The lid rotates open upward on its back hinge",
+ "started": "2026-11-18T09:29:42.102Z",
+ "meshTask": "8300639",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/673584b5df2c44519564dc088961f2dc/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8300766",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:34:46.700Z"
+}

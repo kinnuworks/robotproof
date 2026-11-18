@@ -1,0 +1,14 @@
+{
+ "line": 23,
+ "prompt": "a dishwasher",
+ "moves": "The door rotates down open on its bottom hinge",
+ "started": "2026-11-18T09:21:41.761Z",
+ "meshTask": "8299824",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/9e08116457a4475d86a7bb4e96233bba/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8300032",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:26:04.611Z"
+}

@@ -1,0 +1,15 @@
+{
+ "line": 11,
+ "prompt": "a mailbox with a front flap",
+ "moves": "The flap rotates down open on its bottom hinge",
+ "started": "2026-11-18T09:05:48.157Z",
+ "meshTask": "8298319",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/fe342debdf734205b9fd12a227d91b7c/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298452",
+ "joints": [
+  "revolute",
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:10:48.561Z"
+}

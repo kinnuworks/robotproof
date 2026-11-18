@@ -1,0 +1,15 @@
+{
+ "line": 29,
+ "prompt": "a kitchen drawer unit with two drawers",
+ "moves": "Each drawer slides straight out of the front",
+ "started": "2026-11-18T09:27:32.109Z",
+ "meshTask": "8300495",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/985151563d284ed786fc8f255fb2b99f/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8300609",
+ "joints": [
+  "prismatic",
+  "prismatic"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:32:21.676Z"
+}

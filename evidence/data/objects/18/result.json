@@ -1,0 +1,17 @@
+{
+ "line": 18,
+ "prompt": "a dresser with four drawers",
+ "moves": "Each drawer slides straight out of the front",
+ "started": "2026-11-18T09:12:19.130Z",
+ "meshTask": "8298782",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/237987dab24149d687112854bf335f6d/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8299257",
+ "joints": [
+  "prismatic",
+  "prismatic",
+  "prismatic",
+  "prismatic"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:19:19.553Z"
+}

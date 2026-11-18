@@ -1,0 +1,14 @@
+{
+ "line": 4,
+ "prompt": "a kitchen wall cabinet with one door",
+ "moves": "The door swings open on its left side hinge",
+ "started": "2026-11-18T08:56:01.336Z",
+ "meshTask": "8297302",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/d73d35db8dc44d689ae6fc7afeb00baa/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8297599",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:00:55.872Z"
+}

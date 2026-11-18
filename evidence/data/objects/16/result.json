@@ -1,0 +1,14 @@
+{
+ "line": 16,
+ "prompt": "an oven with a front door",
+ "moves": "The door rotates down open on its bottom hinge",
+ "started": "2026-11-18T09:11:08.030Z",
+ "meshTask": "8298675",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/bfe2966f0eb147cf96f6c6e5df689607/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298865",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:16:51.654Z"
+}

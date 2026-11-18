@@ -1,0 +1,14 @@
+{
+ "line": 3,
+ "prompt": "a small jewellery box with a hinged lid",
+ "moves": "The lid rotates open upward on its back hinge",
+ "started": "2026-11-18T08:56:01.303Z",
+ "meshTask": "8297301",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/d894c4463e2048ffa1099c36649f983f/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8297687",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:01:44.937Z"
+}

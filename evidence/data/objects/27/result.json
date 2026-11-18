@@ -1,0 +1,10 @@
+{
+ "line": 27,
+ "prompt": "a bedside cabinet with one door",
+ "moves": "The door swings open on its left side hinge",
+ "started": "2026-11-18T09:26:04.612Z",
+ "meshTask": "8300293",
+ "ok": false,
+ "error": "mesh failed: no reason given",
+ "finished": "2026-11-18T09:27:08.127Z"
+}

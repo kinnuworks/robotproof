@@ -1,0 +1,14 @@
+{
+ "line": 28,
+ "prompt": "a mini fridge",
+ "moves": "The door swings open on its left side hinge",
+ "started": "2026-11-18T09:27:08.130Z",
+ "meshTask": "8300435",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/2b4e52c605114f3ab4fcad9fc7044adb/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8300618",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:31:46.360Z"
+}

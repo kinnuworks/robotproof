@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="mailbox_body">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/mailbox_body.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="door">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/door.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="flag">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/flag.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="door_joint" type="revolute">
+    <parent link="mailbox_body" />
+    <child link="door" />
+    <origin rpy="0 0 0" xyz="-0.01115600 0.99433601 0.35191300" />
+    <axis xyz="-0.99999900 0.00121300 0.00019900" />
+    <limit lower="-1.570796" upper="0.000000" effort="10" velocity="1" />
+  </joint>
+  <joint name="flag_joint" type="revolute">
+    <parent link="mailbox_body" />
+    <child link="flag" />
+    <origin rpy="0 0 0" xyz="0.18310000 1.30860001 0.25650000" />
+    <axis xyz="1.00000000 0.00000000 0.00000000" />
+    <limit lower="-1.570796" upper="0.000000" effort="10" velocity="1" />
+  </joint>
+</robot>

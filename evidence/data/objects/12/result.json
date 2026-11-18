@@ -1,0 +1,14 @@
+{
+ "line": 12,
+ "prompt": "a desk with one drawer",
+ "moves": "The drawer slides straight out of the front",
+ "started": "2026-11-18T09:06:16.142Z",
+ "meshTask": "8298355",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/b3f0bdb822814871b2f97396a16dc7f1/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298518",
+ "joints": [
+  "prismatic"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:11:08.030Z"
+}

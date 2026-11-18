@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="body">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/body.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="lid">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/lid.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="pedal">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/pedal.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="lid_joint" type="revolute">
+    <parent link="body" />
+    <child link="lid" />
+    <origin rpy="0 0 0" xyz="0.15854400 0.42261699 0.00196400" />
+    <axis xyz="-0.01405500 -0.02564400 0.99957200" />
+    <limit lower="-1.570796" upper="0.000000" effort="10" velocity="1" />
+  </joint>
+  <joint name="pedal_joint" type="revolute">
+    <parent link="body" />
+    <child link="pedal" />
+    <origin rpy="0 0 0" xyz="-0.11730000 0.04629999 -0.00730000" />
+    <axis xyz="-0.00770000 0.03610100 0.99931800" />
+    <limit lower="0.000000" upper="0.523599" effort="10" velocity="1" />
+  </joint>
+</robot>

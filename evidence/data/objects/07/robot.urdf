@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="base">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/base.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="door_front">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/door_front.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="drawer_dispenser">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/drawer_dispenser.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="access_panel_bottom">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/access_panel_bottom.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="door_front_joint" type="revolute">
+    <parent link="base" />
+    <child link="door_front" />
+    <origin rpy="0 0 0" xyz="0.18606400 0.29556701 0.20023500" />
+    <axis xyz="-0.01559700 0.99986700 -0.00486300" />
+    <limit lower="0.000000" upper="2.094395" effort="10" velocity="1" />
+  </joint>
+  <joint name="drawer_dispenser_joint" type="prismatic">
+    <parent link="base" />
+    <child link="drawer_dispenser" />
+    <origin rpy="0 0 0" xyz="-0.19134400 0.75996801 0.01169800" />
+    <axis xyz="0.00000000 0.00000000 1.00000000" />
+    <limit lower="0.000000" upper="0.309624" effort="10" velocity="1" />
+  </joint>
+  <joint name="access_panel_bottom_joint" type="revolute">
+    <parent link="base" />
+    <child link="access_panel_bottom" />
+    <origin rpy="0 0 0" xyz="0.16893400 0.03996101 0.19404800" />
+    <axis xyz="-0.99999000 -0.00143100 0.00432200" />
+    <limit lower="-1.570796" upper="0.000000" effort="10" velocity="1" />
+  </joint>
+</robot>

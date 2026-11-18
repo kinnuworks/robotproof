@@ -1,0 +1,14 @@
+{
+ "line": 6,
+ "prompt": "a laptop computer",
+ "moves": "The screen rotates open around the hinge at the back of the keyboard",
+ "started": "2026-11-18T08:56:01.337Z",
+ "meshTask": "8297303",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/d16ad689f4d14f35bbdfe1a3a3a3abe3/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8297640",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:00:55.983Z"
+}

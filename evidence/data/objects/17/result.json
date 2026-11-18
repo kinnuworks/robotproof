@@ -1,0 +1,14 @@
+{
+ "line": 17,
+ "prompt": "a cigar box",
+ "moves": "The lid rotates open upward on its back hinge",
+ "started": "2026-11-18T09:11:51.748Z",
+ "meshTask": "8298731",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/a2356208f1654069adf1ba56141b2f63/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8299044",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:18:03.060Z"
+}

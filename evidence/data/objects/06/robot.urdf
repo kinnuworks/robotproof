@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="base">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/base.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="screen">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/screen.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="screen_joint" type="revolute">
+    <parent link="base" />
+    <child link="screen" />
+    <origin rpy="0 0 0" xyz="-0.00430000 0.00759072 -0.08530000" />
+    <axis xyz="-0.99999900 0.00150000 0.00050000" />
+    <limit lower="-0.700000" upper="1.700000" effort="10" velocity="1" />
+  </joint>
+</robot>

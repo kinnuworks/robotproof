@@ -1,0 +1,14 @@
+{
+ "line": 24,
+ "prompt": "a bread box with a roll-top lid",
+ "moves": "The lid rotates open upward on its back hinge",
+ "started": "2026-11-18T09:21:45.068Z",
+ "meshTask": "8299830",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/3ea18e0ea6c3472f8887d1d17cba215f/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8300033",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:27:32.104Z"
+}

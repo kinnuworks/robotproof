@@ -1,0 +1,14 @@
+{
+ "line": 5,
+ "prompt": "a microwave oven with a side-hinged door",
+ "moves": "The door swings open on its left side hinge",
+ "started": "2026-11-18T08:56:01.337Z",
+ "meshTask": "8297300",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/35d8c1c5c0cd43969ec2885ba1fc91fc/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8297653",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:00:21.959Z"
+}

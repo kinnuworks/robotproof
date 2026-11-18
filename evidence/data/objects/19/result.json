@@ -1,0 +1,14 @@
+{
+ "line": 19,
+ "prompt": "a piano with a keyboard lid",
+ "moves": "The keyboard lid rotates up on its back hinge",
+ "started": "2026-11-18T09:16:09.762Z",
+ "meshTask": "8299309",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/5806310101de4ce2876013345db50bdd/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8299530",
+ "joints": [
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:21:45.068Z"
+}

@@ -1,0 +1,16 @@
+{
+ "line": 7,
+ "prompt": "a front-loading washing machine with a round door",
+ "moves": "The round door swings open on its left side hinge",
+ "started": "2026-11-18T09:00:21.960Z",
+ "meshTask": "8297867",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/1966b03d08634e7bafff7a48f0d319df/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298204",
+ "joints": [
+  "revolute",
+  "prismatic",
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:07:24.054Z"
+}

@@ -1,0 +1,15 @@
+{
+ "line": 14,
+ "prompt": "a pedal trash can with a lid",
+ "moves": "The lid rotates open upward on its back hinge",
+ "started": "2026-11-18T09:07:24.055Z",
+ "meshTask": "8298426",
+ "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261118/c59c2dfb1bfa474cb08abec1839ee4c8/results/tex_mesh/attempt-1/tex_mesh.glb",
+ "artTask": "8298523",
+ "joints": [
+  "revolute",
+  "revolute"
+ ],
+ "ok": true,
+ "finished": "2026-11-18T09:12:19.129Z"
+}
