@@ -59,13 +59,14 @@ doc = f"""<!doctype html><html><head><meta charset="utf-8"><title>Robotproof: pr
  table {{ border-collapse: collapse; width: 100%; font-size: 8.5pt; }} td, th {{ border-bottom: 1px solid #ddd; padding: 1.2mm 1.5mm; text-align: left; vertical-align: top; }}
  .card {{ border: 1px solid #ccc; border-radius: 4px; padding: 3mm 4mm; margin-bottom: 3mm; }}
  code {{ font-size: 9pt; }}
+ .hero img {{ width: 80%; }}
 </style></head><body>
 
 <section class="page">
 <h1>Robotproof</h1>
 <p class="lead"><b>Make something robots can't open.</b> Photograph or describe anything with a lid, a door or a drawer. Aholo Lux3D builds it in 3D and works out how its parts move. You open it with your mouse. Then a robot arm tries, without being told how it opens.</p>
 <p>Live: <b>https://robotproof.vercel.app</b></p>
-{fig('00-full-page.png', 'The live app. A Lux3D chest is loaded; the right rail has your turn, the robot button and its verdict, the Robot Gym wall and the make-your-own form.')}
+<div class="hero">{fig('00-full-page.png', 'The live app. A Lux3D chest is loaded; the right rail has your turn, the robot button and its verdict, the Robot Gym wall and the make-your-own form.')}</div>
 <h2>From the idea to the result</h2>
 <p><b>The question.</b> Robots still fumble everyday things people open without thinking, and the 3D objects robots practise on in simulation are built and articulated by hand. Labelling the parts and joints of 5,402 objects for one 2026 dataset took 400 hours of human correction, even with automatic proposals (Artiverse, arXiv 2605.24403). Manycore co-founder Huang Xiaohuang puts the need plainly: "Robots must be trained in virtual environments before they can operate in the real world." (KrASIA, 12 Dec 2025)</p>
 <p><b>The idea.</b> Lux3D's articulation step takes a 3D model and one sentence ("the lid swings up on its back hinge") and returns the object's real kinematics: separate part meshes and a URDF with a hinge or slide joint, its axis and its limits. That turns any generated object into something that can be opened, by a person and by a robot, and loaded into a robot simulator.</p>

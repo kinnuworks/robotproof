@@ -16,7 +16,8 @@ def ready(page, ident):
     page.wait_for_timeout(1500)
 
 def canvas_shot(page, name):
-    page.locator("#view").screenshot(path=str(out / f"{name}.png"))
+    # clip by the canvas box: the stage keeps animating, so element screenshots never see it "stable"
+    page.screenshot(path=str(out / f"{name}.png"), clip=page.locator("#view").bounding_box())
 
 with sync_playwright() as p:
     b = p.chromium.launch(args=["--use-gl=swiftshader", "--enable-unsafe-swiftshader"])
