@@ -39,6 +39,14 @@
 </section>
 
 <section class="page">
+<h2>Teaching it: one demonstration</h2>
+<div class="two"><figure><img src="file:///Users/kinnu/projects/aholo-3d/report/img/08-robot-copying-the-demonstration.png"><figcaption>After STUMPED: the arm copies a recorded drag of the lid (grip point and hand path only, no joint data, same 60 N cap).</figcaption></figure><figure><img src="file:///Users/kinnu/projects/aholo-3d/report/img/09-learned.png"><figcaption>LEARNED: the lid opens past half. The download carries the drag as demonstrations.json.</figcaption></figure></div>
+<p>While you drag a part, the page records where you grabbed it, in the part's own frame, and where that point went, at physics rate. After a STUMPED, the robot grips the same spot and follows that path, moving on only while the part keeps up, with the same force cap and slip rule. It never reads the joint. The drag also ships in the download as <code>demonstrations.json</code>: grip point, positions and open fraction over time, in the URDF's frame.</p>
+<div class="card"><b>Claim:</b> shown once, the robot opens 15 of 19 openable objects (79%, 95% interval 57–91%), against 4 without help (21%) and 6 with the same hand and no demonstration (32%).<br>
+<b>Evidence type:</b> our own break test, not real users. The demonstration is a scripted stand-in for a person's drag: the pull along each joint, recorded as the path of the part's centre. Rule registered in evidence/EVAL_PLAN.md before the first run; the copying hand was changed after it, and that change is logged there with the first run's CSV. Rerun: <code>python evidence/teach.py</code>.</div>
+</section>
+
+<section class="page">
 <h2>Our own test: 28 everyday objects that open</h2>
 <p class="muted">Evidence, stated plainly: no real users yet; it was built for this hackathon. Instead: our own break test on a fixed list of 30 objects written and committed before any run (commit 263b38c); the first 2 were used while building, the other 28 are the test.</p>
 <div class="card"><b>Claim:</b> Lux3D turns a one-line description into an object whose parts open the way the sentence says in 19 of 28 cases (68%, 95% interval 49–82%).<br>

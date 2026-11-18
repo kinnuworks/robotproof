@@ -36,6 +36,12 @@ rnd = sum(int(r["random_pull"]) for r in both)
 pct = lambda a, b: f"{100 * a / b:.0f}%" if b else "n/a"
 ci = lambda a, b: "{:.0f}–{:.0f}%".format(*(100 * x for x in wilson(a, b))) if b else "n/a"
 
+tk = list(csv.DictReader((root / "evidence" / "teach.csv").open())) if (root / "evidence" / "teach.csv").exists() else []
+tk_n = len(tk)
+tk_im = sum(int(r["imitate"]) for r in tk)
+tk_sh = sum(int(r["shape_only"]) for r in tk)
+tk_dm = sum(int(r["shape_only_damped"]) for r in tk)
+
 table = "".join(
     f"<tr><td>{r['line']}</td><td>{html.escape(r['prompt'])}</td><td>{html.escape(r['joints'] or '—')}</td>"
     f"<td>{'yes' if r['articulation_ok'] == '1' else 'no'}</td><td>{'' if r['robot'] == '' else ('opened' if r['robot'] == '1' else 'stumped')}</td>"
@@ -85,6 +91,14 @@ doc = f"""<!doctype html><html><head><meta charset="utf-8"><title>Robotproof: pr
 <h2>The robot</h2>
 <div class="two">{fig('04-robot-trying-the-lid.png', 'The robot reaching for the lip of the lid on its first move (lift).')}{fig('05-robot-verdict-chest.png', 'Verdict on the chest: STUMPED. Lift got the lid 41% open, pull and sweep less. A person opens it in a couple of seconds.')}</div>
 <p>The robot is not given the joint. It sees each moving part's shape and where it sits, picks the point that sticks out most (a knob, a lid's lip), and tries up to three moves in the order the shape suggests: lift, pull, sweep left, sweep right, push down. Its grip is a held point capped at 60 N, it slips if the part won't follow, and a try counts if the part ends more than half open. Before every try the object's physics is rebuilt at rest. It is a scripted set of moves on a drawn two-link arm, not a learned policy, and we say so in the app.</p>
+</section>
+
+<section class="page">
+<h2>Teaching it: one demonstration</h2>
+<div class="two">{fig('08-robot-copying-the-demonstration.png', 'After STUMPED: the arm copies a recorded drag of the lid (grip point and hand path only, no joint data, same 60 N cap).')}{fig('09-learned.png', 'LEARNED: the lid opens past half. The download carries the drag as demonstrations.json.')}</div>
+<p>While you drag a part, the page records where you grabbed it, in the part's own frame, and where that point went, at physics rate. After a STUMPED, the robot grips the same spot and follows that path, moving on only while the part keeps up, with the same force cap and slip rule. It never reads the joint. The drag also ships in the download as <code>demonstrations.json</code>: grip point, positions and open fraction over time, in the URDF's frame.</p>
+<div class="card"><b>Claim:</b> shown once, the robot opens {tk_im} of {tk_n} openable objects ({pct(tk_im, tk_n)}, 95% interval {ci(tk_im, tk_n)}), against {tk_sh} without help ({pct(tk_sh, tk_n)}) and {tk_dm} with the same hand and no demonstration ({pct(tk_dm, tk_n)}).<br>
+<b>Evidence type:</b> our own break test, not real users. The demonstration is a scripted stand-in for a person's drag: the pull along each joint, recorded as the path of the part's centre. Rule registered in evidence/EVAL_PLAN.md before the first run; the copying hand was changed after it, and that change is logged there with the first run's CSV. Rerun: <code>python evidence/teach.py</code>.</div>
 </section>
 
 <section class="page">

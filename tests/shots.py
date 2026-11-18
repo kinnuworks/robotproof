@@ -44,6 +44,24 @@ with sync_playwright() as p:
     page.wait_for_function("document.querySelector('#robot').disabled === false && window.__robotproof.lastRun", timeout=240000)
     page.screenshot(path=str(out / "05-robot-verdict-chest.png"))
 
+    # teach: a recorded drag of the lid (scripted pull standing in for a person, as in evidence/teach.py),
+    # then the robot copies it
+    page.evaluate("""() => { const {world, robot, demos} = window.__robotproof; const o = world.object; const j = o.joints[0]; const part = j.child;
+      robot.reset();
+      const c = part.samples.reduce((a, v) => a.add(v), part.samples[0].clone().set(0,0,0)).multiplyScalar(1 / part.samples.length);
+      let dir = j.axis.clone().cross(c.clone().sub(j.anchor)).normalize(); if (Math.abs(j.def.lower) > Math.abs(j.def.upper)) dir.negate();
+      const local = part.mesh.worldToLocal(c.clone()); const path = [], t = [], joint = [];
+      for (let i = 0; i < 360; i++) { for (const q of o.parts) q.body.resetForces(true); const p = part.mesh.localToWorld(local.clone());
+        const f = dir.clone().multiplyScalar(part.mass * 20); part.body.addForceAtPoint({x:f.x,y:f.y,z:f.z},{x:p.x,y:p.y,z:p.z},true); world.step(world.physics.timestep);
+        if (i % 2 === 0) { path.push(part.mesh.localToWorld(local.clone())); t.push(i/60); joint.push(world.openness(j)); } }
+      demos.set(part.name, {part: part.name, local, path, t, joint}); robot.reset();
+      const b = document.querySelector('#teach'); b.hidden = false; b.click(); }""")
+    page.wait_for_timeout(3000)
+    canvas_shot(page, "08-robot-copying-the-demonstration")
+    page.wait_for_function("window.__robotproof.lastTeach", timeout=240000)
+    page.wait_for_timeout(1200)
+    page.screenshot(path=str(out / "09-learned.png"))
+
     page.select_option("#pick", "nightstand")
     ready(page, "nightstand")
     page.evaluate("""() => { const {world} = window.__robotproof;
