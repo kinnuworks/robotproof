@@ -38,7 +38,12 @@ app.innerHTML = `
         <p class="verdict" id="verdict" role="status"></p>
         <ol id="attempts"></ol>
         <button id="download" type="button" class="secondary">Download for robot simulators (URDF)</button>
+        <button id="share" type="button" class="secondary">Copy a link to this object</button>
         <p class="status" id="status" role="status">Loading…</p>
+      </section>
+      <section class="gym">
+        <h2>Robot Gym: things people made</h2>
+        <ol id="gym"></ol>
       </section>
       <section class="make">
         <h2>Make your own</h2>
@@ -82,7 +87,21 @@ function resize() {
 }
 addEventListener('resize', resize);
 
+function renderGym() {
+  const made = entries.filter((e) => e.id);
+  const el = $('#gym');
+  el.innerHTML = made.length
+    ? made.slice(0, 12).map((e) => `<li><a href="?base=${encodeURIComponent(e.base)}" data-key="${e.key}">${e.label}</a> <small>${e.tries ? `stumped the robot ${e.stumped ?? 0} of ${e.tries} tries` : 'not tried yet'}</small></li>`).join('')
+    : '<li><small>Nothing yet. Make the first one below.</small></li>';
+  el.querySelectorAll<HTMLAnchorElement>('a[data-key]').forEach((a) => a.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    const e = entries.find((x) => x.key === a.dataset.key);
+    if (e) { show(e); renderPicker(); }
+  }));
+}
+
 function renderPicker() {
+  renderGym();
   const made = entries.filter((e) => e.id);
   pick.innerHTML =
     `<optgroup label="Examples">${BUILT_IN.map((e) => `<option value="${e.key}">${e.label}</option>`).join('')}</optgroup>` +
@@ -217,6 +236,15 @@ $('#download').addEventListener('click', async () => {
     btn.disabled = false;
     btn.textContent = 'Download for robot simulators (URDF)';
   }
+});
+
+$('#share').addEventListener('click', async () => {
+  if (!current) return;
+  const url = current.id
+    ? `${location.origin}/?base=${encodeURIComponent(current.base)}`
+    : `${location.origin}/?object=${encodeURIComponent(current.key)}`;
+  try { await navigator.clipboard.writeText(url); statusEl.textContent = 'Link copied.'; }
+  catch { statusEl.textContent = url; }
 });
 
 // --- Make your own: Lux3D builds it, then finds the moving parts -----------------------------------
