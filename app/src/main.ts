@@ -33,7 +33,7 @@ app.innerHTML = `
       <canvas id="view" aria-label="3D view of the object. Drag a lid or drawer to open it."></canvas>
       <div class="intro">
         <h1>Make something robots can't open.</h1>
-        <p class="why">Photograph or describe anything with a lid, a door or a drawer. Lux3D builds it with working hinges. You open it first. Then the robot tries, without being told how.</p>
+        <p class="why">Photograph or describe anything with a lid, a door or a drawer. Lux3D builds it with working hinges. You open it first. Then the robot tries, without being told how. Stump it, then show it once and see if it learns.</p>
       </div>
       <div class="hint" id="hint">Drag a lid or drawer to open it</div>
       <p class="caption" id="caption" aria-hidden="true" hidden></p>
@@ -115,7 +115,9 @@ function resize() {
   camera.aspect = r.width / Math.max(1, r.height);
   // On wide stages the headline sits top-left, so shift the object to the right of it.
   const shift = r.width > 760 ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stage-shift') || '0') : 0;
-  if (shift) camera.setViewOffset(r.width, r.height, -r.width * shift, 0, r.width, r.height);
+  if (shift) camera.setViewOffset(r.width, r.height, -r.width * shift, -r.height * shift * 0.3, r.width, r.height);
+  // narrower stages: the text spans the width, so drop the object below it instead
+  else if (r.width > 0 && r.height > 0) camera.setViewOffset(r.width, r.height, 0, -r.height * 0.2, r.width, r.height);
   else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
@@ -333,7 +335,7 @@ $('#teach').addEventListener('click', async () => {
   $('#attempts').innerHTML += res.attempts.map((a) => `<li>${esc(pretty(a.part))}: copied you, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
   const learned = res.opened.length > 0 && res.stumped.length === 0;
   verdict.textContent = learned
-    ? `LEARNED. After one look at how you did it, the robot opened the ${res.opened.map(pretty).join(', ')}.`
+    ? `LEARNED. After one look at how you did it, the robot opened the ${res.opened.map(pretty).join(', ')} (more than half open counts).`
     : `Still stumped. Even copying you, it couldn't open the ${res.stumped.map(pretty).join(', ')}.`;
   verdict.classList.toggle('stumped', !learned);
   slapStamp(true, learned ? 'LEARNED' : 'STUMPED');

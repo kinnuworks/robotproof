@@ -14,6 +14,7 @@ It needs Lux3D because Lux3D's articulation step returns real joints (a URDF wit
 3. Press **Let the robot try**. It gets three attempts and doesn't know where the hinge is. On the chest it ends STUMPED.
 4. Press **Teach it: let it copy you**. The arm follows the path your hand took and opens the lid.
 5. Switch to the nightstand: the robot pulls both drawers out. Download either object for a robot simulator.
+6. **Make your own** (top right): type or photograph something that opens and say what moves. It takes about 5 to 10 minutes and lands on the **Robot Gym** wall, where anyone can try it.
 
 ---
 

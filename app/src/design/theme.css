@@ -20,7 +20,7 @@
   --shadow-btn: 1px 0 5px rgb(0 0 0 / 0.13), 2px 2px 4px 1px rgb(0 0 0 / 0.08);
   --pad-panel: 28px;
   --bar-h: 80px; --bench-pad: 24px; --bench-gap: 24px; --rail-w: 400px; --rail-gap: 24px;
-  --stage-bg: #fbf8f5; --stage-radius: 10px; --stage-shadow: var(--shadow-card); --stage-shift: 0.14;
+  --stage-bg: #fbf8f5; --stage-radius: 10px; --stage-shadow: var(--shadow-card); --stage-shift: 0.24;
   --intro-w: 500px;
   --nav-fg: #000000; --nav-fs: 22px;
   --meter-fill: #000000; --meter-track: #f1e8de;
