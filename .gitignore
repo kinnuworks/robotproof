@@ -7,3 +7,4 @@ dist/
 *.log
 proto/out/
 .DS_Store
+app/public/eval-objects

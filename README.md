@@ -49,7 +49,7 @@ The robot is not given the joint. It sees the shape of each moving part and wher
 > Evidence type: Our own break test, not real users.
 > Data: evidence/data/prompts-v1.txt lines 3–30 (CC0, our own list), generated with Lux3D on 18 Nov 2026, n=28. Baseline: none published on this input.
 > Result: 67.9% (95% interval 49.3% to 82.1%).
-> Rerun: `cd app && npx tsx ../evidence/generate.mts` then `python evidence/score.py <url> evidence/results.csv` at commit 6c6e368. Limits: one Lux3D build failed with no reason given, two came back with extra joint types, and six did not open past half (oven and dishwasher doors swing into the floor; some lids turn 180°).
+> Rerun: `cd app && npx tsx ../evidence/generate.mts` (regenerates with Lux3D, costs credits), or to rescore the committed objects: `./evidence/serve.sh`, then `python evidence/score.py http://localhost:5199 evidence/results.csv` at commit 6c6e368. Limits: one Lux3D build failed with no reason given, two came back with extra joint types, and six did not open past half (oven and dishwasher doors swing into the floor; some lids turn 180°).
 
 > Claim: The robot, never told the joint, opens 4 of the 19 openable objects.
 > Evidence type: Our own break test, not real users.
@@ -62,7 +62,7 @@ The robot is not given the joint. It sees the shape of each moving part and wher
 > Evidence type: Our own break test, not real users.
 > Data: the same 19 objects, seed 20261118, n=19. The demonstration is a stand-in for a person's drag: the scripted pull along each joint, recorded at 30 Hz as the path of the part's centre; the robot gets only that path. Baselines on the same objects: the shape-only robot opens 4 of 19 (21.1%, 95% interval 8.5% to 43.3%); the shape-only robot with the same stiff, damped hand the copy uses opens 6 of 19 (31.6%, 15.4% to 54.0%).
 > Result: 78.9% (95% interval 56.7% to 91.5%); +57.9 points over shape-only (95% interval +36.8 to +78.9) and +47.4 over the same hand without the demonstration (+21.1 to +73.7), paired.
-> Rerun: `python evidence/teach.py <url> evidence/teach.csv` and `python3 evidence/interval.py diff evidence/teach.csv imitate shape_only_damped --seed 20261118`. The rule was registered in evidence/EVAL_PLAN.md before the first run (commit 4ee434f); the copying hand was changed after it, logged there with the first run's CSV. Limits: the demonstration is scripted, not a person's; one try per part; four objects still failed (a two-door fridge, a pizza box, a suitcase, a two-drawer unit).
+> Rerun: `./evidence/serve.sh`, then `python evidence/teach.py http://localhost:5199 evidence/teach.csv` and `python3 evidence/interval.py diff evidence/teach.csv imitate shape_only_damped --seed 20261118`. The rule was registered in evidence/EVAL_PLAN.md before the first run (commit 4ee434f); the copying hand was changed after it, logged there with the first run's CSV. Limits: the demonstration is scripted, not a person's; one try per part; four objects still failed (a two-door fridge, a pizza box, a suitcase, a two-drawer unit).
 
 ## What doesn't work yet
 
