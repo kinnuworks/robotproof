@@ -1,0 +1,29 @@
+line,prompt,want,lux3d_ok,articulation_ok,robot,random_pull,joints,note
+3,a small jewellery box with a hinged lid,revolute,1,1,0,0,lid_joint:revolute,
+4,a kitchen wall cabinet with one door,revolute,1,1,0,0,door_joint:revolute,
+5,a microwave oven with a side-hinged door,revolute,1,1,0,0,microwave_door_joint:revolute,
+6,a laptop computer,revolute,1,1,0,1,screen_joint:revolute,
+7,a front-loading washing machine with a round door,revolute,1,0,,,door_front_joint:revolute drawer_dispenser_joint:prismatic access_panel_bottom_joint:revolute,"joint types ['revolute', 'prismatic', 'revolute'] vs asked revolute"
+8,a filing cabinet with three drawers,prismatic,1,1,0,0,drawer_top_joint:prismatic drawer_middle_joint:prismatic drawer_bottom_joint:prismatic,
+9,a toilet with a lid,revolute,1,1,0,0,lid_joint:revolute,
+10,a refrigerator with two doors stacked,revolute,1,1,0,0,door_upper_joint:revolute door_lower_joint:revolute,
+11,a mailbox with a front flap,revolute,1,1,0,0,door_joint:revolute flag_joint:revolute,
+12,a desk with one drawer,prismatic,1,1,1,0,drawer_joint:prismatic,
+13,a wardrobe with two doors,revolute,1,0,,,door_left_joint:revolute door_right_joint:revolute,a part did not open past half under a pull along its joint
+14,a pedal trash can with a lid,revolute,1,1,0,1,lid_joint:revolute pedal_joint:revolute,
+15,a toolbox with a lid,revolute,1,0,,,lid_joint:revolute,a part did not open past half under a pull along its joint
+16,an oven with a front door,revolute,1,0,,,door_joint:revolute,a part did not open past half under a pull along its joint
+17,a cigar box,revolute,1,1,1,0,lid_joint:revolute,
+18,a dresser with four drawers,prismatic,1,1,1,0,drawer_1_joint:prismatic drawer_2_joint:prismatic drawer_3_joint:prismatic drawer_4_joint:prismatic,
+19,a piano with a keyboard lid,revolute,1,1,0,0,keyboard_lid_joint:revolute,
+20,a pizza box,revolute,1,0,,,lid_joint:revolute,a part did not open past half under a pull along its joint
+21,a medicine cabinet with a mirror door,revolute,1,1,0,0,door_joint:revolute,
+22,a suitcase lying flat,revolute,1,0,,,top_half_joint:revolute,a part did not open past half under a pull along its joint
+23,a dishwasher,revolute,1,1,0,0,door_front_joint:revolute,
+24,a bread box with a roll-top lid,revolute,1,0,,,lid_joint:revolute,a part did not open past half under a pull along its joint
+25,a safe with a heavy door,revolute,1,0,,,door_joint:revolute dial_joint:continuous handle_joint:revolute,"joint types ['revolute', 'continuous', 'revolute'] vs asked revolute"
+26,a sewing box with a lid,revolute,1,1,0,0,lid_joint:revolute,
+27,a bedside cabinet with one door,revolute,0,0,,,,mesh failed: no reason given
+28,a mini fridge,revolute,1,1,0,0,door_joint:revolute,
+29,a kitchen drawer unit with two drawers,prismatic,1,1,1,1,drawer_top_joint:prismatic drawer_bottom_joint:prismatic,
+30,a music box with a lid,revolute,1,1,0,0,lid_joint:revolute,
