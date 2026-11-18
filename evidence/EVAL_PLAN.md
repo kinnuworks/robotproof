@@ -53,3 +53,13 @@ Then a short limits paragraph, in numbers: zero real users, the interval, the da
 
 ## Changes after the first run
 - 2026-11-18 ~15:10 IST, after the first scoring run (n=28: 11/28 openable, robot 4/11, random 2/11): fixed a measurement bug, not the rule. `World.openness` measured travel from the lower limit, but Lux3D returns many ranges as [-a, 0] with the closed pose at 0, so those parts read as "open" at rest and "closing" as they opened (13 of the 41 joints). Openness is now the share of travel from rest (0) toward the limit farther from 0, and the scripted pull opens toward that limit too. The test set, the 50% rule, the robot, the baseline and the seed are unchanged; the first run's CSV is kept as evidence/results-run1-bug.csv.
+
+## Added before running: claim 3, teaching the robot (2026-11-19 ~02:20 IST, committed before any teach run)
+- Claim: after one demonstration, the robot (still never given the joint) opens objects its shape-only tries could not.
+- Set: the 19 objects that came out openable in claim 1 (evidence/results.csv, articulation_ok = 1). No new generation.
+- Demonstration (a stand-in for a person's drag, stated as such): the same scripted pull that defined "openable" (force along each joint's own direction at the part's centre, 360 steps), recorded at 30 Hz as the world path of the part's centre. The demonstrator knows the joint, as a person does; the robot gets only the path.
+- Robot with the demonstration (`Robot.imitate`): grips the part's centre, follows the recorded path at up to 0.4 m/s while the part keeps up (within 4 cm), critically damped hand, same 60 N cap and 12 cm slip rule as every other try, one try per part.
+- Success: every moving part ends ≥ 0.5 open (same rule as claims 1 and 2). Object-level, one row per object.
+- Comparisons (paired, same 19 objects, seed 20261118): (a) the shape-only robot from claim 2 (4 of 19), and (b) the shape-only robot with the same critically damped hand, to separate the demonstration's effect from the hand controller's.
+- Report: k of 19 for each arm with a 95% Wilson interval, and `interval.py diff` for imitate − shape-only and imitate − shape-only-damped. The claim stands only if the lower end of imitate − shape-only-damped is above 0.
+- Rerun: `python evidence/teach.py <url serving /eval-objects/NN/> evidence/teach.csv`.
