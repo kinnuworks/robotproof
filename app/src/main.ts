@@ -172,6 +172,7 @@ async function show(entry: Entry) {
   arm.visible = false;
   world.scene.add(arm);
   humanOpened = false;
+  if (holding) { holding = false; paused = false; }
   demos.clear();
   $('#teach').hidden = true;
   $('#you').textContent = 'Your turn first: open it with the mouse.';
@@ -193,6 +194,7 @@ function setNdc(e: PointerEvent) {
 }
 canvas.addEventListener('pointerdown', (e) => {
   if (!world.object || robotBusy) return;
+  if (holding) { holding = false; paused = false; arm.visible = false; }
   setNdc(e);
   ray.setFromCamera(ndc, camera);
   const hits = ray.intersectObjects(world.object.parts.map((p) => p.mesh), true);
@@ -246,6 +248,7 @@ function showOpenness(i: number, o: number) {
   if (p) p.textContent = `${Math.round(Math.max(0, Math.min(1, o)) * 100)}%`;
 }
 let robotBusy = false;
+let holding = false;
 let robotFrame = 0;
 // The signature moment: a STUMPED stamp lands on the stage when the robot gives up.
 function slapStamp(on: boolean, word = 'STUMPED') {
@@ -261,6 +264,7 @@ function slapStamp(on: boolean, word = 'STUMPED') {
 $('#robot').addEventListener('click', async () => {
   if (!world.object || robotBusy) return;
   robotBusy = true;
+  holding = false;
   const btn = $<HTMLButtonElement>('#robot');
   btn.disabled = true;
   const verdict = $('#verdict');
@@ -325,8 +329,6 @@ $('#teach').addEventListener('click', async () => {
       if (robotFrame % 3 === 0) world.object?.joints.forEach((j, i) => showOpenness(i, world.openness(j)));
     },
   });
-  paused = false;
-  arm.visible = false;
   caption.hidden = true;
   $('#attempts').innerHTML += res.attempts.map((a) => `<li>${esc(pretty(a.part))}: copied you, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
   const learned = res.opened.length > 0 && res.stumped.length === 0;
@@ -335,6 +337,9 @@ $('#teach').addEventListener('click', async () => {
     : `Still stumped. Even copying you, it couldn't open the ${res.stumped.map(pretty).join(', ')}.`;
   verdict.classList.toggle('stumped', !learned);
   slapStamp(true, learned ? 'LEARNED' : 'STUMPED');
+  // On success the arm keeps holding the part open (physics paused) until you touch the object again.
+  holding = learned;
+  if (!learned) { paused = false; arm.visible = false; }
   (window as any).__robotproof.lastTeach = res;
   btn.disabled = false;
   btn.hidden = true;
