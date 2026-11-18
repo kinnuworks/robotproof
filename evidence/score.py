@@ -36,8 +36,8 @@ SCRIPT = """async ({wantType, seed}) => {
     let dir;
     if (j.def.type === 'prismatic') dir = j.axis.clone();
     else dir = j.axis.clone().cross(c.clone().sub(j.anchor)).normalize();
-    // open in the direction of the positive limit
-    if (j.def.upper < 0 || (j.def.upper === 0 && j.def.lower < 0)) dir.negate();
+    // open toward the limit farther from rest (0), the same rule world.openness uses
+    if (Math.abs(j.def.lower) > Math.abs(j.def.upper)) dir.negate();
     for (let i = 0; i < 360; i++) {
       for (const q of o.parts) q.body.resetForces(true);
       const f = dir.clone().multiplyScalar(part.mass * 20);

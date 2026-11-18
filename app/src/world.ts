@@ -299,10 +299,13 @@ export class World {
     return angle * sign;
   }
 
-  /** 0 = closed, 1 = fully open, using the URDF limits. */
+  /** 0 = closed (rest), 1 = at the far limit. */
   openness(j: Joint): number {
-    const span = j.def.upper - j.def.lower || 1;
-    return Math.max(0, Math.min(1, (this.jointValue(j) - j.def.lower) / span));
+    // Rest is joint value 0 (how Lux3D poses the closed object). Opening runs toward whichever limit is
+    // farther from 0: Lux3D returns both [0, +a] and [-a, 0] ranges.
+    const target = Math.abs(j.def.upper) >= Math.abs(j.def.lower) ? j.def.upper : j.def.lower;
+    if (!target) return 0;
+    return Math.max(0, Math.min(1, this.jointValue(j) / target));
   }
 
   step(dt: number) {

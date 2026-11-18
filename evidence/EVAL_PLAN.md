@@ -52,4 +52,4 @@ Then one card per claim:
 Then a short limits paragraph, in numbers: zero real users, the interval, the data's years, and the next real test, with the metric and threshold that would change the conclusion.
 
 ## Changes after the first run
-<None yet. Each change: the date, what changed, and why.>
+- 2026-11-18 ~15:10 IST, after the first scoring run (n=28: 11/28 openable, robot 4/11, random 2/11): fixed a measurement bug, not the rule. `World.openness` measured travel from the lower limit, but Lux3D returns many ranges as [-a, 0] with the closed pose at 0, so those parts read as "open" at rest and "closing" as they opened (13 of the 41 joints). Openness is now the share of travel from rest (0) toward the limit farther from 0, and the scripted pull opens toward that limit too. The test set, the 50% rule, the robot, the baseline and the seed are unchanged; the first run's CSV is kept as evidence/results-run1-bug.csv.
