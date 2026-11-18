@@ -33,6 +33,8 @@ The robot is not given the joint. It sees the shape of each moving part and wher
 ## Check it yourself
 
 - The live app: https://robotproof.vercel.app (chest, nightstand, and anything visitors have made)
+- The chest download rendered by MuJoCo 3.3.7 itself (no browser): closed, then with its `lid_joint` set to the 1.57 rad limit Lux3D returned. Rerun: `.venv/bin/python tests/mujoco_shot.py <unzipped download> docs/mujoco-chest.png`
+  ![The downloaded chest in MuJoCo, closed and with the lid at its hinge limit](docs/mujoco-chest.png)
 - `./check.sh` runs the typecheck, the build, a call to the real Aholo API, a headless browser run of the demo path (drag, robot, download, with video), and loads the downloaded URDF in MuJoCo 3.3.7 and drives every joint.
 
 ## Evidence
