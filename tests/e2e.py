@@ -3,7 +3,8 @@
 Usage: python tests/e2e.py <base url> <out dir>
 1. The chest loads; a person drags its lid open past half its range with the mouse.
 2. The robot tries the chest; the run ends with a verdict.
-3. The download button gives a zip with robot.urdf and meshes (checked further by sim_check.py).
+3. If the robot was stumped, "teach" makes it copy the person's drag (grip point and path, no joint data) and it opens the lid.
+4. The download button gives a zip with robot.urdf and meshes (checked further by sim_check.py) and the person's demonstration.
 """
 import json
 import pathlib
@@ -63,7 +64,17 @@ with sync_playwright() as p:
         assert verdict.startswith("STUMPED") or verdict.startswith("The robot opened"), verdict
         page.screenshot(path=str(out / f"{obj}-after-robot.png"))
 
-    # 3. Download for simulators.
+        # 3. Teach: the robot copies the person's demonstration (grip point and hand path), still capped at 60 N.
+        if run["stumped"]:
+            page.wait_for_selector("#teach:not([hidden])", timeout=10000)
+            page.click("#teach")
+            page.wait_for_function("window.__robotproof.lastTeach", timeout=240000)
+            teach = page.evaluate("() => window.__robotproof.lastTeach")
+            results[f"teach_{obj}"] = {"opened": teach["opened"], "stumped": teach["stumped"], "verdict": page.inner_text("#verdict")}
+            assert "lid" in teach["opened"], f"the robot didn't open the lid from the demonstration: {teach}"
+            page.screenshot(path=str(out / f"{obj}-after-teach.png"))
+
+    # 4. Download for simulators.
     with page.expect_download(timeout=60000) as dl:
         page.click("#download")
     zpath = out / "download.zip"
@@ -74,6 +85,13 @@ with sync_playwright() as p:
     assert any(n.endswith("robot.urdf") for n in names), names
     assert any(n.endswith(".obj") for n in names), names
     results["download_files"] = names
+    demo_name = next((n for n in names if n.endswith("demonstrations.json")), None)
+    assert demo_name, f"no demonstrations.json in the download: {names}"
+    demo = json.loads((out / "download" / demo_name).read_text())
+    d0 = demo["demonstrations"][0]
+    assert d0["link"] == "lid" and len(d0["samples"]) >= 10, d0.keys()
+    assert max(s["joint_fraction"] for s in d0["samples"]) >= 0.5, "the recorded demonstration never opened the lid past half"
+    results["demonstration_samples"] = len(d0["samples"])
     results["page_errors"] = errors
     ctx.close()
     browser.close()
