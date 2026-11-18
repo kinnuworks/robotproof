@@ -1,0 +1,9 @@
+{
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/job.ts": { "maxDuration": 300, "memory": 2048 },
+    "api/make.ts": { "maxDuration": 60 },
+    "api/gallery.ts": { "maxDuration": 60 }
+  }
+}

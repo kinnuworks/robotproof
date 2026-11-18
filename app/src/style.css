@@ -25,3 +25,11 @@ select { width: 100%; padding: 6px; }
 #robot { margin-top: 16px; width: 100%; padding: 10px; font-size: 15px; cursor: pointer; }
 .verdict { font-weight: 600; min-height: 1.2em; }
 #attempts { padding-left: 18px; font-size: 13px; }
+.secondary { margin-top: 12px; width: 100%; padding: 8px; font-size: 13px; cursor: pointer; }
+.verdict.stumped { color: #b3261e; }
+.you { font-size: 14px; }
+.make { margin-top: 24px; border-top: 1px solid #ddd; padding-top: 12px; }
+.make form { display: grid; gap: 6px; }
+.make input { padding: 6px; font-size: 14px; }
+.make button { padding: 8px; font-size: 14px; cursor: pointer; }
+.progress { font-size: 13px; min-height: 1.2em; }

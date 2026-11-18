@@ -2,7 +2,7 @@
 import { unzipSync } from 'fflate';
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { dedup, prune, weld, simplify, meshopt, textureCompress, resample } from '@gltf-transform/functions';
+import { dedup, prune, meshopt, textureCompress } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptSimplifier, MeshoptDecoder } from 'meshoptimizer';
 import sharp from 'sharp';
 
@@ -28,9 +28,6 @@ export async function optimizeGlb(input: Uint8Array, textureSize = 1024): Promis
   await doc.transform(
     dedup(),
     prune(),
-    resample(),
-    weld(),
-    simplify({ simplifier: MeshoptSimplifier, ratio: 0.5, error: 0.0005 }),
     textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [textureSize, textureSize] }),
     meshopt({ encoder: MeshoptEncoder, level: 'medium' }),
   );

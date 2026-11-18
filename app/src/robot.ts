@@ -135,7 +135,7 @@ export class Robot {
             break;
           }
           opts.onStep?.(hand, p, part, strategy);
-          if (opts.frameDelay) await new Promise((r) => setTimeout(r, opts.frameDelay));
+          if (opts.frameDelay && s % 3 === 0) await new Promise((r) => setTimeout(r, opts.frameDelay! * 3));
         }
         const openness = this.world.openness(joint);
         ok = openness >= 0.5;
