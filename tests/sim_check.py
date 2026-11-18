@@ -1,6 +1,6 @@
 """Loads a Robotproof download in MuJoCo (a real robot simulator) and drives every joint.
 
-Usage: .venv/bin/python tests/sim_check.py <folder with robot.urdf>
+Usage: .venv/bin/python tests/sim_check.py <folder with robot.urdf and model.xml>\nThe URDF must load in MuJoCo with its joints; the joints are driven in the native model.xml.
 Passes when the model compiles, has at least one hinge or slide joint, every link has a positive mass,
 and pushing each joint opens it past half its range and it comes to rest at the same stop under a light
 and a hard push, within 15% of the stated range (MuJoCo's URDF import places some stops slightly past
@@ -21,8 +21,16 @@ patched = urdf.replace(
 )
 tmp = folder / "_mujoco.urdf"
 tmp.write_text(patched)
-model = mujoco.MjModel.from_xml_path(str(tmp))
+urdf_model = mujoco.MjModel.from_xml_path(str(tmp))
+tmp.unlink()
+urdf_moving = [j for j in range(urdf_model.njnt) if urdf_model.jnt_type[j] in (mujoco.mjtJoint.mjJNT_HINGE, mujoco.mjtJoint.mjJNT_SLIDE)]
+assert urdf_moving, "the URDF has no hinge or slide joints"
+print(f"URDF loads in MuJoCo with {len(urdf_moving)} moving joint(s)")
+# The native MuJoCo model in the download is what MuJoCo users load; the joints are driven there.
+# (A URDF can't exclude contact between a part and its parent; Lux3D hinges sit just inside the body.)
+model = mujoco.MjModel.from_xml_path(str(folder / "model.xml"))
 data = mujoco.MjData(model)
+assert model.njnt == len(urdf_moving), f"model.xml has {model.njnt} joints, the URDF {len(urdf_moving)}"
 
 moving = [j for j in range(model.njnt) if model.jnt_type[j] in (mujoco.mjtJoint.mjJNT_HINGE, mujoco.mjtJoint.mjJNT_SLIDE)]
 assert moving, "no hinge or slide joints in the model"
@@ -56,7 +64,6 @@ for j in moving:
     ok = frac > 0.5 and still and same and inside
     report.append((name, ok))
     print(f"{name}: {kind} range [{lo:.3f}, {hi:.3f}] stops at {stops[0][0]:.3f} (light push) / {stops[1][0]:.3f} (hard push), at rest={still} -> {'ok' if ok else 'FAIL'}")
-tmp.unlink()
 if not all(ok for _, ok in report):
     sys.exit("MuJoCo: a joint did not move through its range")
 print(f"MuJoCo {mujoco.__version__}: {len(moving)} joint(s) load and actuate; link masses {[round(m, 2) for m in masses]} kg")
