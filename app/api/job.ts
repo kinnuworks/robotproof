@@ -29,7 +29,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (t.status !== 3) return res.json({ stage: 'mesh' });
       if (!moves) return res.status(400).json({ error: 'Missing the sentence about what opens' });
       const glbUrl = t.outputs.find((u) => u.endsWith('.glb')) ?? t.outputs[0];
-      const artTask = await articulate(glbUrl, moves);
+      let artTask: string;
+      try {
+        artTask = await articulate(glbUrl, moves);
+      } catch (e: any) {
+        if (/CONCURRENCY_LIMIT/.test(String(e?.message))) return res.json({ stage: 'waiting' });
+        throw e;
+      }
       await putOnce(`arts/${mesh}.json`, JSON.stringify({ artTask, glbUrl, moves, label, at: new Date().toISOString() }), 'application/json');
       return res.json({ stage: 'joints' });
     }

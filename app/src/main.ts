@@ -252,6 +252,7 @@ const progress = $('#progress');
 const STAGES: Record<string, string> = {
   mesh: 'Lux3D is building the 3D model (about 2 minutes)…',
   joints: 'Lux3D is finding the hinges and drawers (about 4 minutes)…',
+  waiting: 'Model ready. Waiting for a free Lux3D slot to find the hinges…',
 };
 async function toDataUrl(f: File): Promise<string> {
   // Downscale big photos before upload.
@@ -303,8 +304,18 @@ $('#make').addEventListener('submit', async (e) => {
   try {
     const body: any = { prompt: what, moves };
     if (file) body.image = await toDataUrl(file);
-    const r = await fetch('/api/make', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const j = await r.json();
+    let r: Response, j: any;
+    const t0 = Date.now();
+    for (;;) {
+      r = await fetch('/api/make', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      j = await r.json().catch(() => ({ error: `Server error ${r.status}` }));
+      if (r.status !== 503 || !j.busy) break;
+      // Lux3D runs a few objects at a time; wait for a slot (keep the uploaded photo, don't send it again).
+      if (j.photoUrl) { delete body.image; body.photoUrl = j.photoUrl; }
+      const s = Math.round((Date.now() - t0) / 1000);
+      progress.textContent = `Lux3D is busy with other objects. Waiting for a free slot… ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      await new Promise((res) => setTimeout(res, 20000));
+    }
     if (!r.ok) { progress.textContent = j.error ?? `Server error ${r.status}`; return; }
     await follow({ meshTask: j.meshTask, moves: j.moves, label: what || 'Your photo', started: Date.now() });
   } catch (err: any) {
@@ -324,7 +335,7 @@ function frame(now: number) {
   requestAnimationFrame(frame);
 }
 function tick(now: number) {
-  const dt = Math.min(0.05, (now - last) / 1000);
+  const dt = Math.min(0.25, (now - last) / 1000);
   last = now;
   if (world.object && !paused) {
     world.object.parts.forEach((p) => p.body.resetForces(true));

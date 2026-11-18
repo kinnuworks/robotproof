@@ -307,7 +307,7 @@ export class World {
 
   step(dt: number) {
     const n = Math.max(1, Math.round(dt / this.physics.timestep));
-    for (let i = 0; i < Math.min(n, 8); i++) this.physics.step();
+    for (let i = 0; i < Math.min(n, 30); i++) this.physics.step();
     if (!this.object) return;
     for (const p of this.object.parts) {
       const t = p.body.translation(), r = p.body.rotation();

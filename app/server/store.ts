@@ -33,13 +33,17 @@ export function hashIp(ip: string) {
   return createHash('sha256').update('robotproof:' + ip).digest('hex').slice(0, 16);
 }
 
-/** Daily caps on new objects: per visitor and overall. Each new object leaves a marker file. */
-export async function checkAndCount(ip: string, perVisitor: number, perDay: number) {
+/** Daily caps on new objects: per visitor and overall. Each object that starts leaves a marker file. */
+export async function checkCap(ip: string, perVisitor: number, perDay: number) {
   const day = new Date().toISOString().slice(0, 10);
   const all = await listAll(`limits/${day}/`);
   const mine = all.filter((b) => b.pathname.startsWith(`limits/${day}/${hashIp(ip)}-`)).length;
   if (all.length >= perDay) return { ok: false, reason: `Today's limit of ${perDay} new objects is used up. Try the gallery, or come back tomorrow.` };
   if (mine >= perVisitor) return { ok: false, reason: `You've made ${perVisitor} objects today, the most one visitor can make. Try the gallery while you wait.` };
-  await putOnce(`limits/${day}/${hashIp(ip)}-${Date.now()}`, '1', 'text/plain');
   return { ok: true as const };
+}
+
+export async function countOne(ip: string) {
+  const day = new Date().toISOString().slice(0, 10);
+  await putOnce(`limits/${day}/${hashIp(ip)}-${Date.now()}`, '1', 'text/plain');
 }
