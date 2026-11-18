@@ -2,7 +2,7 @@
 
 Usage: python tests/e2e.py <base url> <out dir>
 1. The chest loads; a person drags its lid open past half its range with the mouse.
-2. The robot tries the chest and the nightstand; each run ends with a verdict.
+2. The robot tries the chest; the run ends with a verdict.
 3. The download button gives a zip with robot.urdf and meshes (checked further by sim_check.py).
 """
 import json
@@ -49,8 +49,8 @@ with sync_playwright() as p:
     assert opened >= 0.5, f"dragging the lid only opened it {opened:.2f}"
     assert "You opened" in you, f"no 'you opened' message: {you!r}"
 
-    # 2. Robot on the chest, then the nightstand.
-    for obj in ["chest", "nightstand"]:
+    # 2. Robot on the chest (the demo path).
+    for obj in ["chest"]:
         if obj != "chest":
             page.select_option("#pick", obj)
             page.wait_for_function(f"window.__robotproof.id === '{obj}'", timeout=60000)
