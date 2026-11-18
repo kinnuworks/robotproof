@@ -4,7 +4,10 @@ import { World, type Part } from './world';
 import { Robot } from './robot';
 import { buildZip } from './export';
 import { Arm } from './arm';
+import './design/base.css';
+import './design/components.css';
 import './style.css';
+import './design/theme.css';
 
 interface Entry { key: string; label: string; base: string; id?: string; stumped?: number; tries?: number }
 
@@ -17,35 +20,55 @@ let current: Entry | null = null;
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
-  <header>
-    <h1>Robotproof</h1>
-    <p class="tagline">Make something robots can't open.</p>
+  <header class="bar">
+    <a class="brand" href="/">Robotproof</a>
+    <nav class="bar__links" aria-label="Sections">
+      <a href="#gym-panel">Robot Gym</a>
+      <a href="#make-panel" class="bar__cta">Make your own</a>
+    </nav>
   </header>
-  <main>
+  <div class="cutouts" aria-hidden="true"><span class="cutouts__word"></span><img src="/design/cutouts.png" alt="" /></div>
+  <main class="bench">
     <section class="stage">
       <canvas id="view" aria-label="3D view of the object. Drag a lid or drawer to open it."></canvas>
+      <div class="intro">
+        <h1>Make something robots can't open.</h1>
+        <p class="why">Photograph or describe anything with a lid, a door or a drawer. Lux3D builds it with working hinges. You open it first. Then the robot tries, without being told how.</p>
+      </div>
       <div class="hint" id="hint">Drag a lid or drawer to open it</div>
+      <p class="caption" id="caption" aria-hidden="true" hidden></p>
+      <div class="stamp" id="stamp" aria-hidden="true" hidden></div>
       <div class="banner" id="banner" hidden></div>
     </section>
-    <aside>
-      <section>
-        <label for="pick">Object</label>
-        <select id="pick"></select>
+    <aside class="rail">
+      <section class="panel panel--turn">
+        <div class="pickrow">
+          <label for="pick">Object</label>
+          <select id="pick"></select>
+        </div>
         <h2>Moving parts</h2>
         <ul id="joints"></ul>
-        <p class="you" id="you"></p>
-        <button id="robot" type="button">Let the robot try</button>
-        <p class="verdict" id="verdict" role="status"></p>
-        <ol id="attempts"></ol>
-        <button id="download" type="button" class="secondary">Download for robot simulators (URDF)</button>
-        <button id="share" type="button" class="secondary">Copy a link to this object</button>
+        <ol class="duel">
+          <li class="duel__row duel__row--you"><span class="duel__who">You</span><p class="you" id="you"></p></li>
+          <li class="duel__row duel__row--robot"><span class="duel__who">Robot</span>
+            <div class="duel__body">
+              <button id="robot" type="button" class="ui-btn robot-btn">Let the robot try</button>
+              <p class="verdict" id="verdict" role="status"></p>
+              <ol id="attempts"></ol>
+            </div>
+          </li>
+        </ol>
+        <div class="tools">
+          <button id="download" type="button" class="ui-btn ui-btn--ghost secondary">Download for robot simulators (URDF)</button>
+          <button id="share" type="button" class="ui-btn ui-btn--ghost secondary">Copy a link to this object</button>
+        </div>
         <p class="status" id="status" role="status">Loading…</p>
       </section>
-      <section class="gym">
+      <section class="panel panel--gym gym" id="gym-panel">
         <h2>Robot Gym: things people made</h2>
         <ol id="gym"></ol>
       </section>
-      <section class="make">
+      <section class="panel panel--make make" id="make-panel">
         <h2>Make your own</h2>
         <form id="make">
           <label for="what">What is it?</label>
@@ -54,16 +77,19 @@ app.innerHTML = `
           <input id="photo" type="file" accept="image/png,image/jpeg,image/webp" />
           <label for="moves">What should open?</label>
           <input id="moves" maxlength="240" placeholder="the lid swings up on its back hinge" required />
-          <button type="submit">Make it</button>
+          <button type="submit" class="ui-btn">Make it</button>
           <p class="progress" id="progress" role="status"></p>
         </form>
       </section>
     </aside>
   </main>`;
 
+document.querySelector('.cutouts__word')!.innerHTML = [...'ROBOTPROOF'].map((ch, i) => `<span style="--i:${i};--r:${(((i * 37) % 11) - 5) * 1.4}deg;--y:${(((i * 53) % 7) - 3) * 4}px">${ch}</span>`).join('');
+
 const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
 const canvas = $<HTMLCanvasElement>('#view');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setClearColor(0x000000, 0);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -73,16 +99,23 @@ controls.enableDamping = true;
 
 const world = new World();
 const robot = new Robot(world);
-let arm = new Arm(1);
+const caption = document.querySelector<HTMLParagraphElement>('#caption')!;
+const cssColor = (name: string, fallback: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+const armColors = () => ({ body: cssColor('--arm-body', '#f2f2f0'), dark: cssColor('--arm-dark', '#2b2b2b'), accent: cssColor('--arm-accent', '#ff6a00') });
+let arm = new Arm(1, armColors());
 arm.visible = false;
 const statusEl = $<HTMLParagraphElement>('#status');
 const pick = $<HTMLSelectElement>('#pick');
 const pretty = (s: string) => s.replace(/_/g, ' ');
 
 function resize() {
-  const r = canvas.parentElement!.getBoundingClientRect();
+  const r = { width: canvas.clientWidth, height: canvas.clientHeight };
   renderer.setSize(r.width, r.height, false);
   camera.aspect = r.width / Math.max(1, r.height);
+  // On wide stages the headline sits top-left, so shift the object to the right of it.
+  const shift = r.width > 760 ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stage-shift') || '0') : 0;
+  if (shift) camera.setViewOffset(r.width, r.height, -r.width * shift, 0, r.width, r.height);
+  else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
@@ -121,11 +154,11 @@ async function show(entry: Entry) {
   camera.position.set(r * 1.6, s.y * 0.45 + r * 1.1, r * 2.2);
   controls.update();
   $('#joints').innerHTML = obj.joints
-    .map((j, i) => `<li><span>${pretty(j.def.child)}</span> <small>${j.def.type === 'prismatic' ? 'slides' : 'hinged'}</small><meter id="m${i}" min="0" max="1" value="0"></meter></li>`)
+    .map((j, i) => `<li><span class="joint__name">${pretty(j.def.child)} <small>${j.def.type === 'prismatic' ? 'slides' : 'hinged'}</small></span><b class="joint__pct" id="p${i}">0%</b><meter id="m${i}" min="0" max="1" value="0"></meter></li>`)
     .join('');
   statusEl.textContent = `${obj.joints.length} moving part${obj.joints.length === 1 ? '' : 's'} · about ${Math.round(s.x * 100)} × ${Math.round(s.y * 100)} × ${Math.round(s.z * 100)} cm`;
   world.scene.remove(arm);
-  arm = new Arm(Math.max(0.6, Math.max(s.x, s.y, s.z) * 1.3));
+  arm = new Arm(Math.max(0.6, Math.max(s.x, s.y, s.z) * 1.3), armColors());
   arm.position.set(s.x * 0.15, 0, Math.max(s.z, 0.3) * 0.5 + Math.max(s.x, s.y, s.z) * 0.9);
   arm.visible = false;
   world.scene.add(arm);
@@ -133,6 +166,7 @@ async function show(entry: Entry) {
   $('#you').textContent = 'Your turn first: open it with the mouse.';
   $('#verdict').textContent = '';
   $('#attempts').innerHTML = '';
+  $('#stamp').hidden = true;
   $('#hint').classList.remove('gone');
   if (entry.key !== 'shared') history.replaceState(null, '', `?object=${encodeURIComponent(entry.key)}`);
   (window as any).__robotproof = { world, camera, canvas, robot, ready: true, id: entry.key };
@@ -177,13 +211,30 @@ function applyGrab() {
   const b = grab.part.body;
   const p = grab.part.mesh.localToWorld(grab.local.clone());
   const v = b.linvel();
-  const k = 160 * grab.part.mass, c = 14 * grab.part.mass;
+  const k = 400 * grab.part.mass, c = 40 * grab.part.mass;
   const f = grab.target.clone().sub(p).multiplyScalar(k).sub(new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(c));
   b.addForceAtPoint({ x: f.x, y: f.y, z: f.z }, { x: p.x, y: p.y, z: p.z }, true);
 }
 
+// Live readout of how far each part is open: a real number from the physics.
+function showOpenness(i: number, o: number) {
+  const m = document.querySelector<HTMLMeterElement>(`#m${i}`);
+  if (m) m.value = o;
+  const p = document.querySelector<HTMLElement>(`#p${i}`);
+  if (p) p.textContent = `${Math.round(Math.max(0, Math.min(1, o)) * 100)}%`;
+}
 let robotBusy = false;
 let robotFrame = 0;
+// The signature moment: a STUMPED stamp lands on the stage when the robot gives up.
+function slapStamp(on: boolean) {
+  const el = $('#stamp');
+  el.hidden = !on;
+  if (!on) return;
+  el.innerHTML = [...'STUMPED'].map((ch, i) => `<span style="--i:${i};--r:${(((i * 37) % 11) - 5) * 1.8}deg">${ch}</span>`).join('');
+  el.classList.remove('stamp--in');
+  void el.offsetWidth;
+  el.classList.add('stamp--in');
+}
 $('#robot').addEventListener('click', async () => {
   if (!world.object || robotBusy) return;
   robotBusy = true;
@@ -191,7 +242,9 @@ $('#robot').addEventListener('click', async () => {
   btn.disabled = true;
   const verdict = $('#verdict');
   verdict.textContent = 'The robot is trying…';
+  $('#hint').classList.add('gone');
   $('#attempts').innerHTML = '';
+  $('#stamp').hidden = true;
   arm.visible = true;
   paused = true;
   const res = await robot.run({
@@ -200,16 +253,21 @@ $('#robot').addEventListener('click', async () => {
       arm.reach(h);
       if (++robotFrame % 3 === 0) renderer.render(world.scene, camera);
       verdict.textContent = `Trying the ${pretty(part.name)}: ${strategy}`;
+      caption.hidden = false;
+      caption.textContent = verdict.textContent;
+      if (robotFrame % 3 === 0) world.object?.joints.forEach((j, i) => showOpenness(i, world.openness(j)));
     },
   });
   paused = false;
   arm.visible = false;
+  caption.hidden = true;
   $('#attempts').innerHTML = res.attempts.map((a) => `<li>${pretty(a.part)}: ${a.strategy}, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
   const stumped = res.stumped.length > 0;
   verdict.textContent = stumped
     ? `STUMPED. The robot couldn't open the ${res.stumped.map(pretty).join(', ')}.${humanOpened ? ' You could.' : ''}`
     : `The robot opened everything (${res.opened.length} part${res.opened.length === 1 ? '' : 's'}).`;
   verdict.classList.toggle('stumped', stumped);
+  slapStamp(stumped);
   (window as any).__robotproof.lastRun = res;
   if (current?.id) {
     fetch('/api/gallery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: current.id, human: humanOpened, robot: res }) }).catch(() => {});
@@ -343,8 +401,7 @@ function tick(now: number) {
     world.step(dt);
     world.object.joints.forEach((j, i) => {
       const o = world.openness(j);
-      const m = document.querySelector<HTMLMeterElement>(`#m${i}`);
-      if (m) m.value = o;
+      showOpenness(i, o);
       if (!humanOpened && grab && o >= 0.5) {
         humanOpened = true;
         const t = ((performance.now() - grabStart) / 1000).toFixed(1);
@@ -359,7 +416,7 @@ function tick(now: number) {
 (async () => {
   resize();
   await world.init();
-  world.scene.background = new THREE.Color(0xf4f2ee);
+  world.scene.background = null;
   renderPicker();
   const want = new URLSearchParams(location.search).get('object');
   try {

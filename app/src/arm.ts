@@ -11,12 +11,12 @@ export class Arm extends THREE.Group {
   private L2: number;
   private H: number;
 
-  constructor(scale = 1) {
+  constructor(scale = 1, colors: { body: string; dark: string; accent: string } = { body: '#f2f2f0', dark: '#2b2b2b', accent: '#ff6a00' }) {
     super();
     this.L1 = 0.55 * scale; this.L2 = 0.5 * scale; this.H = 0.25 * scale;
-    const body = new THREE.MeshStandardMaterial({ color: 0xf2f2f0, metalness: 0.1, roughness: 0.45 });
-    const dark = new THREE.MeshStandardMaterial({ color: 0x2b2b2b, metalness: 0.4, roughness: 0.5 });
-    const accent = new THREE.MeshStandardMaterial({ color: 0xff6a00, metalness: 0.1, roughness: 0.5 });
+    const body = new THREE.MeshStandardMaterial({ color: colors.body, metalness: 0.1, roughness: 0.45 });
+    const dark = new THREE.MeshStandardMaterial({ color: colors.dark, metalness: 0.4, roughness: 0.5 });
+    const accent = new THREE.MeshStandardMaterial({ color: colors.accent, metalness: 0.1, roughness: 0.5 });
     const r = 0.045 * scale;
     const base = new THREE.Mesh(new THREE.CylinderGeometry(r * 2, r * 2.4, this.H, 24), dark);
     base.position.y = this.H / 2;

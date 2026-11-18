@@ -1,0 +1,93 @@
+/*
+  Theme: built on Streamtime's system (white top with a cut-out wordmark, a warm grey band of
+  product windows), set heavier at the owner's request: bold headline, colour-block panels.
+*/
+:root {
+  --focus: #000000;
+  --paper: #ffffff; --sheet: #fbf8f5; --sheet-2: #f1e8de;
+  --ink: #000000; --ink-2: #2f2c29; --ink-3: #5c5651;
+  --rule: #eadcce; --rule-strong: #8f857c;
+  --act: #ffde3b; --on-act: #000000; --act-ink: #6b5a00;
+  --bad: #b0158c;
+  --btn-bg: #ffde3b; --btn-fg: #000000; --btn-radius: 4px; --btn-case: none; --btn-weight: 700; --btn-fs: 22px; --btn-track: -0.03em;
+  --ghost-bg: #f1eeeb; --ghost-fg: #000000; --ghost-border: transparent;
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif; --font-ui: var(--font-display); --font-body: var(--font-display);
+  --font-mono: "Bricolage Grotesque", system-ui, sans-serif;
+  --fs-display: 60px; --lh-display: 0.95; --track-display: -0.045em; --weight-display: 800;
+  --fs-h3: 30px; --weight-heading: 800; --track-heading: -0.04em; --track-body: -0.02em;
+  --r-card: 10px; --r-control: 4px; --r-pill: 999px;
+  --shadow-card: 1px 0 5px rgb(0 0 0 / 0.13), 2px 2px 4px 1px rgb(0 0 0 / 0.08);
+  --shadow-btn: 1px 0 5px rgb(0 0 0 / 0.13), 2px 2px 4px 1px rgb(0 0 0 / 0.08);
+  --pad-panel: 28px;
+  --bar-h: 80px; --bench-pad: 24px; --bench-gap: 24px; --rail-w: 400px; --rail-gap: 24px;
+  --stage-bg: #fbf8f5; --stage-radius: 10px; --stage-shadow: var(--shadow-card); --stage-shift: 0.14;
+  --intro-w: 500px;
+  --nav-fg: #000000; --nav-fs: 22px;
+  --meter-fill: #000000; --meter-track: #f1e8de;
+  --arm-body: #fbf8f5; --arm-dark: #2f2c29; --arm-accent: #ff4dd5;
+  --pct-fs: 64px; --pct-weight: 800; --pct-font: "Bricolage Grotesque", sans-serif; --pct-ink: #000000;
+  --who-font: "Archivo Black", sans-serif;
+  --who-bg: #ffde3b; --who-fg: #000; --who-bg-2: #ff4dd5; --who-fg-2: #000; --who-radius: 4px;
+  --duel-line: 2px solid #eadcce;
+  --caption-bg: #000000; --caption-fg: #ffde3b; --caption-radius: 4px;
+}
+body { letter-spacing: -0.02em; }
+.brand { font-size: 26px; font-weight: 800; letter-spacing: -0.05em; }
+.bar__links a { background: #ffffff; border-radius: 999px; padding: 6px 18px; box-shadow: var(--shadow-btn); font-weight: 500; }
+.bar__links a.bar__cta { background: #ffde3b; }
+
+/* The collage wordmark over the hand-cut workshop shapes */
+.cutouts { display: block; position: relative; padding: 0 var(--gutter); margin-top: -8px; }
+.cutouts__word { display: flex; justify-content: center; font-family: "Archivo Black", sans-serif; font-size: clamp(56px, 9.4vw, 136px); line-height: 0.8; color: #000; letter-spacing: -0.03em; }
+.cutouts__word span { transform: rotate(var(--r)) translateY(var(--y)); }
+.cutouts img { display: block; width: 100%; height: auto; max-height: 76px; object-fit: contain; mix-blend-mode: multiply; margin-top: -6px; }
+
+/* The band of product windows */
+.bench { background: #eadcce; }
+.stage { height: max(540px, calc(100vh - 290px)); }
+.rail { max-height: max(540px, calc(100vh - 290px)); }
+.intro .why { font-size: 18px; font-weight: 500; color: #2f2c29; max-width: 440px; }
+.panel h2 { font-size: 30px; }
+.panel--turn h2 { font-size: 16px; color: var(--ink-3); font-weight: 600; font-family: var(--font-ui); letter-spacing: -0.02em; }
+.joint__name { font-weight: 700; }
+.you { font-weight: 500; }
+.verdict { font-size: 18px; font-weight: 800; }
+.robot-btn { min-height: 64px; font-size: 26px; }
+.duel__who { transform: rotate(-3deg); font-size: 14px; font-weight: 400; }
+.duel__row--robot .duel__who { transform: rotate(2deg); }
+
+/* Colour-block panels, from Streamtime's own pink and green */
+.panel--gym { --panel-bg: #ff4dd5; box-shadow: none; }
+.panel--gym small { color: #000; }
+.panel--gym #gym a { color: #000; font-weight: 700; }
+.panel--make { --panel-bg: #c6dc3c; box-shadow: none; }
+.panel--make .make label, .panel--make .progress, .panel--make input[type=file] { color: #000; }
+.panel--make input:not([type=file]) { background: #ffffff; border-color: #000; }
+.panel--make .ui-btn { --_bg: #000000; --_fg: #ffde3b; }
+
+/* The signature moment: cut-out letters on a pink scrap */
+.stamp {
+  right: 32px; bottom: 32px; padding: 18px 26px; background: #ff4dd5; border-radius: 4px; transform: rotate(-4deg);
+  font-family: "Archivo Black", sans-serif; font-size: 72px; line-height: 1; color: #000;
+  box-shadow: 2px 3px 0 rgb(0 0 0 / 0.15);
+}
+.stamp span { transform: rotate(var(--r)); }
+.stamp--in span { animation: cut-in 260ms cubic-bezier(.2, 1.5, .4, 1) both; animation-delay: calc(var(--i) * 60ms); }
+@keyframes cut-in { from { opacity: 0; translate: 0 -40px; } to { opacity: 1; translate: 0 0; } }
+
+@media (max-width: 760px) {
+  :root { --fs-display: 40px; --stage-shift: 0; --pct-fs: 48px; }
+  .stage { height: auto; }
+  .bench { padding: 12px; gap: 12px; }
+  .cutouts__word { font-size: 10.4vw; }
+  .cutouts__word span { transform: rotate(var(--r)) translateY(calc(var(--y) * 0.3)); }
+  .brand { display: none; }
+  .bar { min-height: 0; padding: 12px 16px 8px; }
+  .bar__links { margin: 0 auto; }
+  .cutouts { margin-top: 0; }
+  .cutouts img { max-height: 52px; }
+  .bar__links a { font-size: 16px; padding: 6px 12px; }
+  .stamp { transform-origin: bottom right; scale: 0.6; bottom: 70px; right: 16px; }
+  .rail { max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) { .stamp--in span { animation: none !important; } }

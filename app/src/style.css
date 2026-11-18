@@ -1,38 +1,83 @@
-:root { font-family: system-ui, sans-serif; color: #1d1d1b; background: #f4f2ee; }
+/* App layout. Every colour, font, radius and shadow comes from the tokens in design/directions.css. */
 * { box-sizing: border-box; }
-body { margin: 0; }
-#app { display: flex; flex-direction: column; height: 100vh; }
-header { padding: 12px 16px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-h1 { font-size: 20px; margin: 0; }
-.tagline { margin: 0; color: #555; }
-main { flex: 1; display: grid; grid-template-columns: 1fr 280px; min-height: 0; }
-.stage { position: relative; min-height: 0; }
-#view { width: 100%; height: 100%; display: block; touch-action: none; }
-.hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); background: #fff; padding: 6px 12px; border-radius: 6px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: var(--fs-body); line-height: var(--lh-body); }
+#app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Header */
+.bar { display: flex; align-items: center; gap: var(--s-5); padding: var(--bar-pad, 12px var(--gutter)); min-height: var(--bar-h, 56px); }
+.brand { font-family: var(--font-display); font-weight: var(--brand-weight, 700); font-size: var(--brand-fs, 18px); color: var(--ink); text-decoration: none; letter-spacing: var(--track-heading); }
+.bar__links { margin-left: auto; display: flex; gap: var(--s-2); align-items: center; }
+.bar__links a { color: var(--nav-fg, var(--ink-3)); text-decoration: none; font-family: var(--font-ui); font-size: var(--nav-fs, 15px); padding: 6px 10px; border-radius: var(--r-control); }
+.bar__links a:hover { color: var(--ink); }
+
+/* Collage wordmark (only direction c shows it) */
+.cutouts { display: none; }
+
+/* Bench: the stage and the rail */
+.bench { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) var(--rail-w, 380px); gap: var(--bench-gap, 0); padding: var(--bench-pad, 0); min-height: 0; }
+.stage { position: relative; min-height: 560px; height: calc(100vh - var(--bar-h, 56px) - 2 * var(--bench-pad-y, 0px)); background: var(--stage-bg); border-radius: var(--stage-radius, 0); overflow: hidden; box-shadow: var(--stage-shadow, none); max-height: 1000px; }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.intro { position: absolute; left: var(--intro-x, 40px); top: var(--intro-y, 32px); max-width: var(--intro-w, 440px); pointer-events: none; }
+.intro h1 { margin: 0; font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--track-display); font-weight: var(--weight-display); color: var(--display-ink, var(--ink)); text-transform: var(--display-case); }
+.intro .why { margin: var(--s-4) 0 0; font-size: var(--fs-body); color: var(--why-ink, var(--ink-2)); line-height: 1.5; }
+.hint { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--hint-bg, var(--sheet)); color: var(--hint-fg, var(--ink)); padding: 8px 16px; border-radius: var(--r-pill); font-family: var(--font-ui); font-size: 15px; box-shadow: var(--shadow-card); white-space: nowrap; }
 .hint.gone { display: none; }
-aside { padding: 16px; border-left: 1px solid #ddd; overflow: auto; }
-aside label, aside h2 { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
-aside h2 { margin-top: 16px; }
-select { width: 100%; padding: 6px; }
-#joints { list-style: none; padding: 0; margin: 0; }
-#joints li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; margin-bottom: 10px; font-size: 14px; }
-#joints meter { grid-column: 1 / -1; width: 100%; }
-.status { font-size: 13px; color: #555; }
-@media (max-width: 720px) {
-  main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
-  aside { border-left: 0; border-top: 1px solid #ddd; }
+.caption { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); margin: 0; background: var(--caption-bg, var(--ink)); color: var(--caption-fg, var(--paper)); padding: 10px 20px; border-radius: var(--caption-radius, var(--r-pill)); font-family: var(--caption-font, var(--font-ui)); font-size: 18px; font-weight: 500; white-space: nowrap; box-shadow: var(--shadow-card); }
+.caption[hidden] { display: none; }
+
+/* Rail */
+.rail { overflow: auto; display: flex; flex-direction: column; gap: var(--rail-gap, 0); padding: var(--rail-pad, 0); max-height: min(1000px, calc(100vh - var(--bar-h, 56px))); }
+.panel { background: var(--panel-bg, var(--sheet)); color: var(--panel-ink, var(--ink)); border-radius: var(--r-card); padding: var(--pad-panel); box-shadow: var(--shadow-card); border: var(--card-edge, 0); }
+.panel h2 { margin: var(--s-5) 0 var(--s-2); font-family: var(--font-heading); font-size: var(--fs-h3); font-weight: var(--weight-heading); letter-spacing: var(--track-heading); line-height: var(--lh-heading); }
+.panel--turn h2 { font-size: 15px; font-family: var(--font-ui); color: var(--ink-3); font-weight: 500; letter-spacing: 0; }
+.panel > h2:first-child { margin-top: 0; }
+.pickrow label { display: block; font-size: 14px; color: var(--ink-3); margin-bottom: 6px; font-family: var(--font-ui); }
+select, .make input:not([type=file]) { width: 100%; min-height: var(--h-control); padding: 0 12px; font: 16px var(--font-ui); color: var(--ink); background: var(--field-bg, var(--sheet)); border: var(--field-bw, 1px) solid var(--rule-strong); border-radius: var(--field-radius, var(--r-control)); }
+.make input[type=file] { font: 15px var(--font-ui); color: var(--ink-2); }
+#joints { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+#joints li { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 18px; align-items: end; }
+.joint__name { font-weight: 500; }
+#joints small { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); margin-left: 6px; font-weight: 400; }
+.joint__pct { font-family: var(--pct-font, var(--font-display)); font-size: var(--pct-fs, 40px); line-height: 0.9; font-weight: var(--pct-weight, 700); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--pct-ink, var(--ink)); min-width: 3ch; text-align: right; }
+#joints meter { grid-column: 1 / -1; width: 100%; height: 8px; appearance: none; border: 0; background: var(--meter-track, var(--sheet-2)); border-radius: var(--r-pill); }
+#joints meter::-webkit-meter-bar { background: var(--meter-track, var(--sheet-2)); border-radius: var(--r-pill); border: 0; height: 8px; }
+#joints meter::-webkit-meter-optimum-value { background: var(--meter-fill, var(--act)); border-radius: var(--r-pill); }
+#joints meter::-moz-meter-bar { background: var(--meter-fill, var(--act)); border-radius: var(--r-pill); }
+/* You vs the robot: two rows of one scoreboard */
+.duel { list-style: none; margin: var(--s-5) 0 0; padding: 0; display: grid; gap: 0; border-top: var(--duel-line, 1px solid var(--rule)); }
+.duel__row { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 16px 0; border-bottom: var(--duel-line, 1px solid var(--rule)); align-items: start; }
+.duel__who { font-family: var(--who-font, var(--font-ui)); font-size: 14px; font-weight: 600; padding: 3px 0; border-radius: var(--who-radius, 0); text-align: center; background: var(--who-bg, transparent); color: var(--who-fg, var(--ink-3)); }
+.duel__row--robot .duel__who { background: var(--who-bg-2, var(--who-bg, transparent)); color: var(--who-fg-2, var(--who-fg, var(--ink-3))); }
+.duel__body { min-width: 0; }
+.you { margin: 0; font-size: 16px; color: var(--ink); padding-top: 2px; }
+.robot-btn { width: 100%; min-height: var(--robot-h, 54px); }
+.verdict { margin: var(--s-3) 0 0; font-weight: 600; min-height: 1.5em; font-size: 16px; }
+.verdict.stumped { color: var(--bad); }
+#attempts { margin: var(--s-2) 0 0; padding-left: 20px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); }
+#attempts:empty { display: none; }
+.tools { display: grid; gap: var(--s-2); margin-top: var(--s-5); }
+.tools .ui-btn { width: 100%; font-size: 15px; min-height: 44px; white-space: normal; }
+.status { font-size: 14px; color: var(--ink-3); margin: var(--s-3) 0 0; }
+#gym { padding-left: 20px; margin: 0; font-size: 15px; display: grid; gap: 6px; }
+#gym a { color: var(--ink); font-weight: 500; }
+#gym small { display: block; font-size: 13px; color: var(--ink-3); }
+.make form { display: grid; gap: 8px; }
+.make label { font-size: 15px; color: var(--ink-2); font-family: var(--font-ui); }
+.make .ui-btn { margin-top: var(--s-2); }
+.progress { font-size: 15px; min-height: 1.4em; margin: 0; }
+
+/* The STUMPED stamp: the one signature moment, each direction draws it its own way. */
+.stamp { position: absolute; z-index: 5; pointer-events: none; }
+.stamp[hidden] { display: none !important; }
+.stamp span { display: inline-block; }
+
+@media (max-width: 760px) {
+  .bench { grid-template-columns: 1fr; }
+  .stage { height: auto; min-height: 0; display: flex; flex-direction: column; }
+  .intro { position: relative; left: auto; top: auto; max-width: none; padding: 20px 16px 0; }
+  #view { position: relative; height: 420px; }
+  .intro { order: -1; }
+  .hint, .caption { position: static; transform: none; align-self: center; margin: 0 0 12px; }
+  .bar__links a { white-space: nowrap; }
+  .rail { max-height: none; overflow: visible; }
 }
-#robot { margin-top: 16px; width: 100%; padding: 10px; font-size: 15px; cursor: pointer; }
-.verdict { font-weight: 600; min-height: 1.2em; }
-#attempts { padding-left: 18px; font-size: 13px; }
-.secondary { margin-top: 12px; width: 100%; padding: 8px; font-size: 13px; cursor: pointer; }
-.verdict.stumped { color: #b3261e; }
-.you { font-size: 14px; }
-.make { margin-top: 24px; border-top: 1px solid #ddd; padding-top: 12px; }
-.make form { display: grid; gap: 6px; }
-.make input { padding: 6px; font-size: 14px; }
-.make button { padding: 8px; font-size: 14px; cursor: pointer; }
-.progress { font-size: 13px; min-height: 1.2em; }
-.gym { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 12px; }
-#gym { padding-left: 18px; font-size: 13px; }
-#gym li { margin-bottom: 4px; }
