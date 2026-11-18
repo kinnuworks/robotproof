@@ -4,6 +4,8 @@
 
 It needs Lux3D because Lux3D's articulation step returns real joints (a URDF with hinge or slide axes, limits and separate part meshes), not just a mesh. Those joints drive the physics you drag, the robot's attempts and the file you download.
 
+![A person drags the chest lid open, then the robot arm tries lift, pull and sweep and gets STUMPED](docs/robotproof.gif)
+
 **Live:** https://robotproof.vercel.app
 
 **Try it in 30 seconds**
