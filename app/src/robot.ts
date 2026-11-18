@@ -80,19 +80,11 @@ export class Robot {
   private world: World;
   constructor(world: World) { this.world = world; }
 
-  /** Put every moving part back to rest (closed) before a try. */
+  /** Put every moving part back to rest (closed) before a try. Teleporting bodies doesn't stick in
+   * the joint solver, so the object's physics is rebuilt at its rest pose instead. */
   reset() {
-    const o = this.world.object;
-    if (!o) return;
-    for (const p of o.parts) {
-      if (p.isRoot) continue;
-      const m = p.rest;
-      p.body.setTranslation({ x: m.position.x, y: m.position.y, z: m.position.z }, true);
-      p.body.setRotation({ x: m.quaternion.x, y: m.quaternion.y, z: m.quaternion.z, w: m.quaternion.w }, true);
-      p.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      p.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-      p.body.resetForces(true);
-    }
+    this.world.buildPhysics();
+    this.world.step(0);
   }
 
   async run(opts: RobotOptions = {}): Promise<RobotResult> {

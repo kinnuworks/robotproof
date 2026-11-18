@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { World, type Part } from './world';
 import { Robot } from './robot';
 import { buildZip } from './export';
+import { Arm } from './arm';
 import './style.css';
 
 interface Entry { key: string; label: string; base: string; id?: string; stumped?: number; tries?: number }
@@ -67,16 +68,8 @@ controls.enableDamping = true;
 
 const world = new World();
 const robot = new Robot(world);
-const hand = new THREE.Group();
-{
-  const mat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.3, roughness: 0.5 });
-  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.03), mat);
-  const f1 = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.05, 0.02), mat); f1.position.set(-0.025, -0.03, 0);
-  const f2 = f1.clone(); f2.position.x = 0.025;
-  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 1, 8), mat); arm.position.y = 0.51;
-  hand.add(palm, f1, f2, arm);
-  hand.visible = false;
-}
+let arm = new Arm(1);
+arm.visible = false;
 const statusEl = $<HTMLParagraphElement>('#status');
 const pick = $<HTMLSelectElement>('#pick');
 const pretty = (s: string) => s.replace(/_/g, ' ');
@@ -112,13 +105,17 @@ async function show(entry: Entry) {
     .map((j, i) => `<li><span>${pretty(j.def.child)}</span> <small>${j.def.type === 'prismatic' ? 'slides' : 'hinged'}</small><meter id="m${i}" min="0" max="1" value="0"></meter></li>`)
     .join('');
   statusEl.textContent = `${obj.joints.length} moving part${obj.joints.length === 1 ? '' : 's'} · about ${Math.round(s.x * 100)} × ${Math.round(s.y * 100)} × ${Math.round(s.z * 100)} cm`;
-  world.scene.add(hand);
+  world.scene.remove(arm);
+  arm = new Arm(Math.max(0.6, Math.max(s.x, s.y, s.z) * 1.3));
+  arm.position.set(s.x * 0.15, 0, Math.max(s.z, 0.3) * 0.5 + Math.max(s.x, s.y, s.z) * 0.9);
+  arm.visible = false;
+  world.scene.add(arm);
   humanOpened = false;
   $('#you').textContent = 'Your turn first: open it with the mouse.';
   $('#verdict').textContent = '';
   $('#attempts').innerHTML = '';
   $('#hint').classList.remove('gone');
-  history.replaceState(null, '', `?object=${encodeURIComponent(entry.key)}`);
+  if (entry.key !== 'shared') history.replaceState(null, '', `?object=${encodeURIComponent(entry.key)}`);
   (window as any).__robotproof = { world, camera, canvas, robot, ready: true, id: entry.key };
 }
 
@@ -176,18 +173,18 @@ $('#robot').addEventListener('click', async () => {
   const verdict = $('#verdict');
   verdict.textContent = 'The robot is trying…';
   $('#attempts').innerHTML = '';
-  hand.visible = true;
+  arm.visible = true;
   paused = true;
   const res = await robot.run({
     frameDelay: 8,
     onStep: (h, _p, part, strategy) => {
-      hand.position.copy(h);
+      arm.reach(h);
       if (++robotFrame % 3 === 0) renderer.render(world.scene, camera);
       verdict.textContent = `Trying the ${pretty(part.name)}: ${strategy}`;
     },
   });
   paused = false;
-  hand.visible = false;
+  arm.visible = false;
   $('#attempts').innerHTML = res.attempts.map((a) => `<li>${pretty(a.part)}: ${a.strategy}, opened ${Math.round(a.opened * 100)}% ${a.success ? '✓' : '✗'}</li>`).join('');
   const stumped = res.stumped.length > 0;
   verdict.textContent = stumped
@@ -331,7 +328,12 @@ function tick(now: number) {
     for (const it of g.items ?? []) entries.push({ key: it.id, id: it.id, label: it.label, base: it.base, stumped: it.stumped, tries: it.tries });
   } catch { /* the gallery is optional; the examples still work */ }
   renderPicker();
-  const first = entries.find((e) => e.key === want) ?? BUILT_IN[0];
+  // ?base=<folder with robot.urdf> opens any object folder from this site or its Blob store (share links, evidence runs).
+  const baseParam = new URLSearchParams(location.search).get('base');
+  if (baseParam && (/^\/[\w\-\/]+\/$/.test(baseParam) || /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/objects\/\d+\/$/.test(baseParam))) {
+    entries.push({ key: 'shared', label: 'Shared object', base: baseParam });
+  }
+  const first = (baseParam && entries.find((e) => e.key === 'shared')) || entries.find((e) => e.key === want) || BUILT_IN[0];
   pick.addEventListener('change', () => { const e = entries.find((x) => x.key === pick.value); if (e) show(e); });
   await show(first);
   renderPicker();

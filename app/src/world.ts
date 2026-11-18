@@ -17,7 +17,12 @@ export interface Part {
   samples: THREE.Vector3[];
   /** Pose at rest (closed). */
   rest: { position: THREE.Vector3; quaternion: THREE.Quaternion };
+  shape: LinkShape;
 }
+
+export type LinkShape =
+  | { kind: 'trimesh'; meshes: { verts: Float32Array; idx: Uint32Array }[] }
+  | { kind: 'hull'; points: Float32Array };
 
 export interface Joint {
   def: UrdfJoint;
@@ -27,6 +32,9 @@ export interface Joint {
   /** World-space anchor and axis at rest. */
   anchor: THREE.Vector3;
   axis: THREE.Vector3;
+  /** Anchor in the parent's frame and axis in the child's frame, for rebuilding the joint. */
+  a1: THREE.Vector3;
+  axisLocal: THREE.Vector3;
 }
 
 export interface LoadedObject {
@@ -41,6 +49,10 @@ const loader = new GLTFLoader();
 loader.setMeshoptDecoder(MeshoptDecoder);
 
 let rapierReady: Promise<void> | null = null;
+// Collision groups (membership << 16 | filter): object parts touch only the ground, never each other.
+// Their joints and limits already hold them together; part-part contact pushed lids open on reset.
+const GROUND = (0x0001 << 16) | 0xffff;
+const PARTS = (0x0002 << 16) | 0x0001;
 export function initPhysics() {
   rapierReady ??= RAPIER.init();
   return rapierReady;
@@ -110,6 +122,7 @@ export class World {
     await initPhysics();
     this.physics = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
     this.physics.timestep = 1 / 120;
+    this.physics.numSolverIterations = 12;
     this.scene.add(this.group);
     const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8a8a, 1.6);
     const dir = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -121,7 +134,7 @@ export class World {
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     this.scene.add(ground);
-    this.physics.createCollider(RAPIER.ColliderDesc.cuboid(4, 0.05, 4).setTranslation(0, -0.05, 0));
+    this.physics.createCollider(RAPIER.ColliderDesc.cuboid(4, 0.05, 4).setTranslation(0, -0.05, 0).setCollisionGroups(GROUND));
   }
 
   partOf(o: THREE.Object3D | null): Part | undefined {
@@ -188,36 +201,24 @@ export class World {
       const isRoot = l.name === rootName;
       const geomsWorld = worldGeometries(holder);
       const mass = estimateMass(geomsWorld);
-      const bodyDesc = (isRoot ? RAPIER.RigidBodyDesc.fixed() : RAPIER.RigidBodyDesc.dynamic())
-        .setTranslation(pos.x, pos.y, pos.z)
-        .setRotation({ x: quat.x, y: quat.y, z: quat.z, w: quat.w })
-        .setAngularDamping(isRoot ? 0 : 1.5)
-        .setLinearDamping(isRoot ? 0 : 1.5)
-        .setCanSleep(false);
-      const body = this.physics.createRigidBody(bodyDesc);
-
-      // Colliders in the link's local frame.
+      // Collider data in the link's local frame (kept so physics can be rebuilt at rest).
       const inv = mw.clone().invert();
       const localGeoms = geomsWorld.map((g) => g.clone().applyMatrix4(inv));
-      if (isRoot) {
-        for (const g of localGeoms) {
-          const verts = g.getAttribute('position').array as Float32Array;
-          const n = verts.length / 3;
-          const idx = g.index ? (g.index.array as Uint32Array) : Uint32Array.from({ length: n }, (_, i) => i);
-          if (n < 3 || idx.length < 3) continue;
-          this.physics.createCollider(RAPIER.ColliderDesc.trimesh(verts, idx).setFriction(0.8), body);
-        }
-      } else {
-        const pts = sampleVertices(localGeoms, 2000);
-        const hull = new ConvexHull().setFromPoints(pts);
-        const hv: number[] = [];
-        for (const v of hull.vertices) hv.push(v.point.x, v.point.y, v.point.z);
-        const desc = RAPIER.ColliderDesc.convexHull(new Float32Array(hv)) ?? RAPIER.ColliderDesc.ball(0.05);
-        desc.setMass(mass).setFriction(0.8);
-        this.physics.createCollider(desc, body);
-      }
-
-      const part: Part = { name: l.name, mesh: holder, body, isRoot, mass, samples: sampleVertices(geomsWorld, 1500), rest: { position: pos.clone(), quaternion: quat.clone() } };
+      const shape: LinkShape = isRoot
+        ? { kind: 'trimesh', meshes: localGeoms.map((g) => {
+            const verts = g.getAttribute('position').array as Float32Array;
+            const n = verts.length / 3;
+            const idx = g.index ? (g.index.array as Uint32Array) : Uint32Array.from({ length: n }, (_, i) => i);
+            return { verts, idx };
+          }).filter((m) => m.verts.length >= 9 && m.idx.length >= 3) }
+        : (() => {
+            const hull = new ConvexHull().setFromPoints(sampleVertices(localGeoms, 2000));
+            const hv: number[] = [];
+            for (const v of hull.vertices) hv.push(v.point.x, v.point.y, v.point.z);
+            return { kind: 'hull' as const, points: new Float32Array(hv) };
+          })();
+      const body = null as unknown as RAPIER.RigidBody;
+      const part: Part = { name: l.name, mesh: holder, body, isRoot, mass, samples: sampleVertices(geomsWorld, 1500), rest: { position: pos.clone(), quaternion: quat.clone() }, shape };
       holder.traverse((o) => this.meshToPart.set(o, part));
       parts.push(part);
     }));
@@ -229,37 +230,58 @@ export class World {
       if (!parent || !child) continue;
       const pw = linkWorld.get(j.parent)!;
       const cw = linkWorld.get(j.child)!;
-      // Anchor: the child frame origin, expressed in each body's local frame.
       const anchorWorld = new THREE.Vector3().setFromMatrixPosition(cw);
       const a1 = anchorWorld.clone().applyMatrix4(pw.clone().invert());
       const axisLocal = new THREE.Vector3(...j.axis).normalize();
       const axisWorld = axisLocal.clone().transformDirection(cw);
-      let data: RAPIER.JointData;
-      if (j.type === 'prismatic') {
-        data = RAPIER.JointData.prismatic(a1, { x: 0, y: 0, z: 0 }, axisLocal);
-        data.limitsEnabled = true;
-        data.limits = [j.lower, j.upper];
-      } else if (j.type === 'revolute' || j.type === 'continuous') {
-        data = RAPIER.JointData.revolute(a1, { x: 0, y: 0, z: 0 }, axisLocal);
-        if (j.type === 'revolute') { data.limitsEnabled = true; data.limits = [j.lower, j.upper]; }
-      } else {
-        data = RAPIER.JointData.fixed(a1, { w: 1, x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { w: 1, x: 0, y: 0, z: 0 });
-      }
-      const rj = this.physics.createImpulseJoint(data, parent.body, child.body, true);
-      rj.setContactsEnabled(false);
-      if (j.type === 'revolute' || j.type === 'prismatic') {
-        (rj as RAPIER.RevoluteImpulseJoint).setLimits(j.lower, j.upper);
-      }
-      // A little friction in the joint so parts stay where you leave them.
-      const motor = rj as RAPIER.RevoluteImpulseJoint;
-      if (j.type !== 'fixed' && 'configureMotorVelocity' in motor) motor.configureMotorVelocity(0, child.mass * 0.6);
-      joints.push({ def: j, rapier: rj, parent, child, anchor: anchorWorld, axis: axisWorld });
+      joints.push({ def: j, rapier: null as unknown as RAPIER.ImpulseJoint, parent, child, anchor: anchorWorld, axis: axisWorld, a1, axisLocal });
     }
-
+    this.object = { urdf, parts, joints, root: byName.get(rootName)!, size: new THREE.Vector3() };
+    this.buildPhysics();
     const box = new THREE.Box3().setFromObject(this.group);
     const size = box.getSize(new THREE.Vector3());
-    this.object = { urdf, parts, joints, root: byName.get(rootName)!, size };
+    this.object.size = size;
     return this.object;
+  }
+
+  /** Create (or re-create) every rigid body, collider and joint at the rest pose. */
+  buildPhysics() {
+    const o = this.object;
+    if (!o) return;
+    for (const j of o.joints) if (j.rapier) this.physics.removeImpulseJoint(j.rapier, true);
+    for (const p of o.parts) if (p.body) this.physics.removeRigidBody(p.body);
+    for (const p of o.parts) {
+      const { position: pos, quaternion: quat } = p.rest;
+      const desc = (p.isRoot ? RAPIER.RigidBodyDesc.fixed() : RAPIER.RigidBodyDesc.dynamic())
+        .setTranslation(pos.x, pos.y, pos.z)
+        .setRotation({ x: quat.x, y: quat.y, z: quat.z, w: quat.w })
+        .setAngularDamping(p.isRoot ? 0 : 1.5)
+        .setLinearDamping(p.isRoot ? 0 : 1.5)
+        .setCanSleep(false);
+      p.body = this.physics.createRigidBody(desc);
+      if (p.shape.kind === 'trimesh') {
+        for (const m of p.shape.meshes) this.physics.createCollider(RAPIER.ColliderDesc.trimesh(m.verts, m.idx).setFriction(0.8).setCollisionGroups(PARTS), p.body);
+      } else {
+        const d = RAPIER.ColliderDesc.convexHull(p.shape.points) ?? RAPIER.ColliderDesc.ball(0.05);
+        d.setMass(p.mass).setFriction(0.8).setCollisionGroups(PARTS);
+        this.physics.createCollider(d, p.body);
+      }
+      p.mesh.position.copy(pos);
+      p.mesh.quaternion.copy(quat);
+    }
+    for (const j of o.joints) {
+      let data: RAPIER.JointData;
+      if (j.def.type === 'prismatic') data = RAPIER.JointData.prismatic(j.a1, { x: 0, y: 0, z: 0 }, j.axisLocal);
+      else if (j.def.type === 'revolute' || j.def.type === 'continuous') data = RAPIER.JointData.revolute(j.a1, { x: 0, y: 0, z: 0 }, j.axisLocal);
+      else data = RAPIER.JointData.fixed(j.a1, { w: 1, x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { w: 1, x: 0, y: 0, z: 0 });
+      if (j.def.type === 'revolute' || j.def.type === 'prismatic') { data.limitsEnabled = true; data.limits = [j.def.lower, j.def.upper]; }
+      const rj = this.physics.createImpulseJoint(data, j.parent.body, j.child.body, true);
+      rj.setContactsEnabled(false);
+      if (j.def.type === 'revolute' || j.def.type === 'prismatic') (rj as RAPIER.RevoluteImpulseJoint).setLimits(j.def.lower, j.def.upper);
+      // A little friction in the joint so parts stay where you leave them.
+      if (j.def.type !== 'fixed') (rj as RAPIER.RevoluteImpulseJoint).configureMotorVelocity(0, j.child.mass * 0.6);
+      j.rapier = rj;
+    }
   }
 
   /** Current joint value (radians or metres) measured from the bodies, relative to rest. */
