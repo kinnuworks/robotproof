@@ -1,0 +1,30 @@
+{
+  "name": "app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.1.1",
+    "@types/three": "^0.170.0",
+    "@vercel/node": "^3.2.29",
+    "playwright": "^1.49.1",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "@gltf-transform/core": "^4.1.1",
+    "@gltf-transform/extensions": "^4.1.1",
+    "@gltf-transform/functions": "^4.1.1",
+    "@vercel/blob": "^0.27.3",
+    "fflate": "^0.8.2",
+    "meshoptimizer": "^0.22.0",
+    "sharp": "^0.33.5",
+    "three": "^0.170.0"
+  }
+}
