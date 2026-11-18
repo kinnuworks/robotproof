@@ -1,6 +1,15 @@
 // Server-side Aholo (international) client. The key comes from the AHOLO_API_KEY environment variable
 // and never reaches the browser.
+import { createAssetClient } from '@manycore/aholo-sdk-asset';
+
 const BASE = 'https://api.aholo.ai/global';
+
+/** Upload a photo to Aholo's own asset storage (the URL Lux3D image-to-3D can always fetch). */
+export async function uploadImage(data: Buffer, filename: string): Promise<string> {
+  const asset = createAssetClient({ region: 'com', apiKey: key() });
+  const r = await asset.uploadBuffer(data, { filename });
+  return r.url;
+}
 
 function key(): string {
   const k = process.env.AHOLO_API_KEY;

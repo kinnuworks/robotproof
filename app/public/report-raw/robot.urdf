@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<robot name="lux3d_raw">
+  <!-- The Lux3D text-to-3D output before articulation: one solid piece, nothing moves. -->
+  <link name="whole"><visual><geometry><mesh filename="meshes/whole.glb"/></geometry></visual></link>
+</robot>
