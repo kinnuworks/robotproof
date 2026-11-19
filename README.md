@@ -28,6 +28,12 @@ It needs Lux3D because Lux3D's articulation step returns real joints (a URDF wit
 
 Lux3D's own part masses are 1.0 kg placeholders. Robotproof replaces them with an estimate (surface area × 12 mm wall × 600 kg/m³) and says so inside the downloaded file.
 
+## Make your own, timed
+
+A real run on the live site on 19 Nov 2026 (`tests/make_live.py`): "a small wooden sewing box with a hinged lid", "The lid swings up on its back hinge". Lux3D built the model in about 1 minute 47 seconds, articulation took about 4 minutes 50, and the object was ready at 6:40 with a revolute `lid_joint` (0 to 2.09 rad). It went straight onto the Robot Gym wall. A photo run the same morning (a stock photo of a wooden box, "Vintage wooden box on open books" by azra melek on Pexels) was ready in 3:50.
+
+![Make your own on the live site: building the model, finding the hinges, ready](docs/make-live.png)
+
 ## How the robot decides
 
 The robot is not given the joint. It sees the shape of each moving part and where it sits on the object, picks the point that sticks out most (a knob, the lip of a lid), and tries up to three moves in the order the shape suggests: lift, pull, sweep left, sweep right or push down. Its grip is a held point with a 60 N cap, and it slips if the part won't follow. An attempt counts if the part ends up more than half open. It is a scripted set of moves on a drawn arm, not a learned policy. [app/src/robot.ts](app/src/robot.ts)
