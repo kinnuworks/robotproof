@@ -65,7 +65,7 @@ doc = f"""<!doctype html><html><head><meta charset="utf-8"><title>Robotproof: pr
  table {{ border-collapse: collapse; width: 100%; font-size: 8.5pt; }} td, th {{ border-bottom: 1px solid #ddd; padding: 1.2mm 1.5mm; text-align: left; vertical-align: top; }}
  .card {{ border: 1px solid #ccc; border-radius: 4px; padding: 3mm 4mm; margin-bottom: 3mm; }}
  code {{ font-size: 9pt; }}
- .hero img {{ width: 80%; }}
+ .hero img {{ width: 66%; }}
 </style></head><body>
 
 <section class="page">
