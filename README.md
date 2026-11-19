@@ -6,7 +6,7 @@ It needs Lux3D because Lux3D's articulation step returns real joints (a URDF wit
 
 ![A person drags the chest lid open, then the robot arm tries lift, pull and sweep and gets STUMPED](docs/robotproof.gif)
 
-**Live:** https://robotproof.vercel.app
+**Live:** https://robotproof.vercel.app  ·  **The 94-second film:** https://qhuaqity4gffgh3y.public.blob.vercel-storage.com/film/robotproof-film.mp4 (also behind "Watch the film" on the site)
 
 **Try it in 30 seconds**
 1. Open the link. A wooden chest is already loaded.

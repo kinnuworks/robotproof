@@ -23,11 +23,16 @@ app.innerHTML = `
   <header class="bar">
     <a class="brand" href="/">Robotproof</a>
     <nav class="bar__links" aria-label="Sections">
+      <a href="#film" id="film-open">Watch the film</a>
       <a href="#gym-panel">Robot Gym</a>
       <a href="#make-panel" class="bar__cta">Make your own</a>
     </nav>
   </header>
   <div class="cutouts" aria-hidden="true"><span class="cutouts__word"></span><img src="/design/cutouts.png" alt="" /></div>
+  <dialog class="film" id="film" aria-label="The 94-second film">
+    <video id="film-video" controls playsinline preload="none" poster="https://qhuaqity4gffgh3y.public.blob.vercel-storage.com/film/robotproof-poster.png" src="https://qhuaqity4gffgh3y.public.blob.vercel-storage.com/film/robotproof-film.mp4"></video>
+    <form method="dialog"><button class="ui-btn">Close</button></form>
+  </dialog>
   <main class="bench">
     <section class="stage">
       <canvas id="view" aria-label="3D view of the object. Drag a lid or drawer to open it."></canvas>
@@ -131,6 +136,13 @@ function resize() {
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
+
+// The film: opens in a dialog and plays; closing it stops playback.
+const film = document.querySelector<HTMLDialogElement>('#film')!;
+const filmVideo = document.querySelector<HTMLVideoElement>('#film-video')!;
+$('#film-open').addEventListener('click', (e) => { e.preventDefault(); film.showModal(); filmVideo.play().catch(() => {}); });
+film.addEventListener('close', () => filmVideo.pause());
+film.addEventListener('click', (e) => { if (e.target === film) film.close(); });
 
 function renderGym() {
   const made = entries.filter((e) => e.id);

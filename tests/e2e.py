@@ -27,6 +27,10 @@ with sync_playwright() as p:
     page.wait_for_function("window.__robotproof && window.__robotproof.ready && window.__robotproof.id === 'chest'", timeout=60000)
     page.wait_for_timeout(1500)
     assert not page.is_visible("#teach"), "the teach button shows before the robot has tried"
+    # the film opens from the header
+    page.click("#film-open")
+    page.wait_for_function("document.querySelector('#film').open && document.querySelector('#film-video').readyState >= 1", timeout=60000)
+    page.keyboard.press("Escape")
 
     # 1. Drag the lid: find the lid's front-top point on screen and pull it up and back.
     pts = page.evaluate("""() => {
