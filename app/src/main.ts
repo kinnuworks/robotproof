@@ -24,6 +24,7 @@ app.innerHTML = `
     <a class="brand" href="/">Robotproof</a>
     <nav class="bar__links" aria-label="Sections">
       <a href="#film" id="film-open">Watch the film</a>
+      <a href="/results.html">Our test</a>
       <a href="#gym-panel">Robot Gym</a>
       <a href="#make-panel" class="bar__cta">Make your own</a>
     </nav>

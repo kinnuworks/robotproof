@@ -42,6 +42,7 @@ The robot is not given the joint. It sees the shape of each moving part and wher
 
 ## Check it yourself
 
+- Our test, object by object: https://robotproof.vercel.app/results.html (all 28 objects with their results; each one opens in the app so you can let the robot try and teach it yourself)
 - The live app: https://robotproof.vercel.app (chest, nightstand, and anything visitors have made)
 - The chest download rendered by MuJoCo 3.3.7 itself (no browser): closed, then with its `lid_joint` set to the 1.57 rad limit Lux3D returned. Rerun: `.venv/bin/python tests/mujoco_shot.py <unzipped download> docs/mujoco-chest.png`
   ![The downloaded chest in MuJoCo, closed and with the lid at its hinge limit](docs/mujoco-chest.png)

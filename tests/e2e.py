@@ -79,6 +79,12 @@ with sync_playwright() as p:
             assert "lid" in teach["opened"], f"the robot didn't open the lid from the demonstration: {teach}"
             page.screenshot(path=str(out / f"{obj}-after-teach.png"))
 
+    # the results page links every test object; the first one opens in the app
+    rp = ctx.new_page()
+    rp.goto(base + "/results.html")
+    assert "object by object" in rp.inner_text("h1")
+    rp.close()
+
     # 4. Download for simulators.
     with page.expect_download(timeout=60000) as dl:
         page.click("#download")
